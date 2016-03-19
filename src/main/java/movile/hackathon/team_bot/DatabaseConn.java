@@ -4,6 +4,9 @@ import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.WriteResult;
+
+import movile.hackathon.team_bot.repository.Servico;
+import movile.hackathon.team_bot.repository.Usuario;
 import movile.hackathon.team_bot.utils.Colecoes;
 import movile.hackathon.team_bot.utils.MongoFacade;
 
@@ -26,6 +29,15 @@ public class DatabaseConn {
                 e.printStackTrace();
             }
         return instance;
+	}
+
+	public void addServico(int userId, String categoria, String sumario, String descricao, String subCategoria){
+		
+	}
+	
+	public void addUsuario(int userId, String userName, float latitude, float longitude){
+		
+		
 	}
 	
 	public String getState(Integer user, Long chatId) {

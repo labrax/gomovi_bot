@@ -2,13 +2,19 @@ package movile.hackathon.team_bot;
 
 import java.util.HashMap;
 
+import movile.hackathon.team_bot.repository.Servico;
+import movile.hackathon.team_bot.repository.Usuario;
+
 public class DatabaseConnMock {
 	private static DatabaseConnMock instance = null; 
 
 	HashMap<String, Object> stateDb = new HashMap<>();
 	HashMap<String, Object> subStateDb = new HashMap<>();
-	HashMap<String, Object> OptionsSelectedDb = new HashMap<>();
-	HashMap<String, Object> ResultadosBuscaDb = new HashMap<>();
+	HashMap<String, Object> optionsSelectedDb = new HashMap<>();
+	HashMap<String, Object> resultadosBuscaDb = new HashMap<>();
+	HashMap<String, Object> usuariosDb = new HashMap<>();
+	
+	
 	private DatabaseConnMock() {}
 	
 	public static DatabaseConnMock getInstance() {
@@ -42,9 +48,9 @@ public class DatabaseConnMock {
 	 * @return
 	 */
 	public String getOptionsSelected(Integer user, Long chatId) {
-		if(!OptionsSelectedDb.containsKey(user+"_"+chatId))
+		if(!optionsSelectedDb.containsKey(user+"_"+chatId))
 			return null;
-		return (String) OptionsSelectedDb.get(user+"_"+chatId);
+		return (String) optionsSelectedDb.get(user+"_"+chatId);
 	}
 	
 	/**
@@ -54,7 +60,17 @@ public class DatabaseConnMock {
 	 * @param options_txt
 	 */
 	public void setOptionsSelected(Integer user, Long chatId, String options_txt) {
-		OptionsSelectedDb.put(user +"_"+ chatId, options_txt);
+		optionsSelectedDb.put(user +"_"+ chatId, options_txt);
+	}
+	
+	public void addServico(int userId, String categoria, String sumario, String descricao, String subCategoria){
+		Usuario usuario = (Usuario) usuariosDb.get(userId);
+		usuario.getServicos().add(new Servico(categoria, sumario, descricao, subCategoria));
+	}
+	
+	public void addUsuario(int userId, String userName, float latitude, float longitude){
+		
+		
 	}
 	
 	/**
