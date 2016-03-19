@@ -139,8 +139,12 @@ public class DatabaseConnMock {
 	 * @param user
 	 * @return
 	 */
-	public String getServicosUsuario(Integer user) {
-		return null;
+	public List<Servico> getServicosUsuario(Integer user) {
+		Usuario usuario = (Usuario) usuariosDb.get(user);
+		List<Servico> servicos = usuario.getServicos();
+		if(servicos.isEmpty())
+			return null;
+		return servicos;
 	}
 
 	/**
