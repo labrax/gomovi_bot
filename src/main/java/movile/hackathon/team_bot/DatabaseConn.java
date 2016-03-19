@@ -192,7 +192,7 @@ public class DatabaseConn {
 
         try {
             DatabaseConn conn = new DatabaseConn();
-            conn.avaliar(1, 5);
+            conn.avaliar(4,3);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -275,13 +275,13 @@ public class DatabaseConn {
 	 * @param avaliacao
 	 * @return TRUE IF SUCCESS; FALSE OTHERWISE
 	 */
-	public Boolean avaliar(Integer user, Integer avaliacao) {
+	public Boolean avaliar(Integer servico, Integer avaliacao) {
 		BasicDBObject query = new BasicDBObject();
-		query.append("tipoDocumento","USUARIO");
-		query.append("user", user);
+		query.append("tipoDocumento","SERVICO");
+		query.append("servico", servico);
         BasicDBObject update = new BasicDBObject("$set", new BasicDBObject().append("avaliacao", avaliacao.toString()));
         try {
-            colecao.update(query,update);
+            colecao.update(query,update, true, false);
             return true;
         }catch (Exception e){
             return false;
