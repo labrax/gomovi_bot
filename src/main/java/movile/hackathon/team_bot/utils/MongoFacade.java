@@ -13,22 +13,13 @@ import java.util.ResourceBundle;
 
 public class MongoFacade {
 
-    /** Objeto para verificar se um atributo existe em um documento */
     private static DB mongoDB;
 
     static{
         mongoDB = null;
     }
 
-    /**
-     * Consulta uma colecao
-     *
-     * @param coll
-     * @return DBCollection
-     * @author eduardo.marques
-     * @throws com.mongodb.MongoException
-     * @throws java.net.UnknownHostException
-     */
+
     public static DBCollection getColecao(Colecoes coll)
             throws UnknownHostException, MongoException {
         String pNomeColecao = coll.toString().toLowerCase();
@@ -58,15 +49,7 @@ public class MongoFacade {
         return colecao;
     }
 
-    /**
-     * Consulta uma colecao
-     *
-     * @param coll
-     * @return DBCollection
-     * @author eduardo.marques
-     * @throws com.mongodb.MongoException
-     * @throws java.net.UnknownHostException
-     */
+
     public static GridFS getGridFS(Colecoes coll)
             throws UnknownHostException, MongoException {
         String pNomeColecao = coll.toString().toLowerCase();
@@ -91,14 +74,6 @@ public class MongoFacade {
     }
 
 
-    /**
-     * Executa o map/reduce na colecao
-     * @param colecao
-     * @param mapReduce
-     * @param query
-     * @return
-     * @author eduardo.marques
-     */
     private static MapReduceOutput performMapReduce(DBCollection colecao,
                                                     String mapReduce, DBObject query) {
         DBObject cmd = new BasicDBObject();
@@ -114,14 +89,6 @@ public class MongoFacade {
         return colecao.mapReduce(cmd);
     }
 
-    /**
-     * Executa o map/reduce na colecao, retornando uma colecao
-     * @param colecao
-     * @param mapReduce
-     * @param query
-     * @return DBCollection
-     * @author eduardo.marques
-     */
     public static DBCollection mapReduceDBCollection(DBCollection colecao,
                                                      String mapReduce, DBObject query) {
 
@@ -131,14 +98,7 @@ public class MongoFacade {
     }
 
 
-    /**
-     * Executa o map/reduce na colecao, retornando uma iterador
-     * @param colecao
-     * @param mapReduce
-     * @param query
-     * @return Iterable<DBObject>
-     * @author eduardo.marques
-     */
+
     public static Iterable<DBObject> mapReduceIterable(DBCollection colecao,
                                                        String mapReduce, DBObject query) {
 
@@ -146,14 +106,6 @@ public class MongoFacade {
         return out.results();
     }
 
-    /**
-     * Executa o map/reduce na colecao
-     * @param colecao
-     * @param group
-     * @param filter
-     * @return
-     * @author eduardo.marques
-     */
     public static List<DBObject> group(DBCollection colecao, String group, DBObject filter) {
         DBObject cmd = (DBObject) JSON.parse(group);
 
