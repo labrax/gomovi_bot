@@ -1,7 +1,7 @@
 package org.telegram.telegrambots.api;
 
 /**
- * @author Ruben Bermudez
+ * @author Ruben Bermudez5s5
  * @version 1.0
  * @brief TODO
  * @date 20 of June of 2015
