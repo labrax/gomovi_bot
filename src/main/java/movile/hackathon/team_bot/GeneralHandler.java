@@ -123,7 +123,7 @@ public class GeneralHandler extends TelegramLongPollingBot {
 		switch(substate) {
 			case "CATEGORIA":
 				new_substate = "SUB-CATEGORIA";
-				retorno = "Qual a sub-categoria do serviço que você esta buscando?";
+				retorno = "Qual a sub-categoria do serviço que você esta buscando?\n\n";
 				retorno += listToString(db.getSubCategorias("Saúde"));
 				break;
 			case "SUB-CATEGORIA":
@@ -179,13 +179,13 @@ public class GeneralHandler extends TelegramLongPollingBot {
 			case "/cadastrar":
 				newState = "CADASTRAR";
 				newSubState = "CATEGORIA";
-				return_message = "Qual categoria deseja cadastrar?";
+				return_message = "Qual categoria deseja cadastrar?\n\n";
 				return_message += listToString(db.getCategorias());
 				break;
 			case "/buscar":
 				newState = "BUSCAR";
 				newSubState = "CATEGORIA";
-				return_message = "Insira a categoria do serviço que deseja buscar: ";
+				return_message = "Qual a categoria do serviço que deseja buscar?\n\n";
 				return_message += listToString(db.getCategorias());
 				break;
 			case "/listar":
@@ -249,7 +249,7 @@ public class GeneralHandler extends TelegramLongPollingBot {
 	}
 	
 	private String listToString(List<String> list) {
-		return String.join(", ", list);
+		return String.join("\n", list);
 	}
 }
 
