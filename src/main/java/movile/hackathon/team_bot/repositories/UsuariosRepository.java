@@ -29,10 +29,13 @@ public class UsuariosRepository {
         return usuario;
     }
 
+
+
     public static void main(String[] args) {
         try {
             UsuariosRepository repository = new UsuariosRepository();
-            repository.findUsuario("12345");
+            BasicDBObject usuario = repository.findUsuario("12345");
+            System.out.println(usuario.get("idUsuario"));
         } catch (Exception e) {
             e.printStackTrace();
         }

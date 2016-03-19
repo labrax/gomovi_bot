@@ -50,6 +50,20 @@ public class GeneralHandler extends TelegramLongPollingBot {
 		String state = db.getState(user, chatId);
 		String substate = db.getSubState(user, chatId);
 		
+		try {
+			if(message.getText().equals("/cancelar")) {
+				if(Config.DEBUG)
+					System.out.println("Cancelando ação do usuário...");
+				db.setState(user, chatId, "INICIAL");
+				db.setSubState(user, chatId, "");
+				db.setOptionsSelected(user, chatId, "");
+				return "A função foi cancelada!";
+			}
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		
 		if(state == null)
 			state = "";
 		if(substate == null)
@@ -77,6 +91,9 @@ public class GeneralHandler extends TelegramLongPollingBot {
 				db.setOptionsSelected(user, chatId, "" + db.getOptionsSelected(user, chatId) + "#" + message.getText());
 				break;
 			case "LOCALIZACAO":
+				if(Config.DEBUG)
+					if(message.getLocation() != null)
+						System.out.println(message.getLocation().getLatitude() + ", " + message.getLocation().getLongitude());
 				if(message.getLocation() != null) {
 					db.setOptionsSelected(user, chatId, "" + db.getOptionsSelected(user, chatId) + "#" + message.getLocation().getLatitude() + "#" + message.getLocation().getLongitude());
 				}
@@ -104,11 +121,60 @@ public class GeneralHandler extends TelegramLongPollingBot {
 	}
 	
 	String processaCadastrar(Message message) {
-		int user = message.getFrom().getId();
-		long chatId = message.getChatId();
-		String substate = db.getSubState(user, chatId);
+		Integer user = message.getFrom().getId();
+		Long chatId = message.getChatId();
 		
-		return "";
+		String retorno = "";
+
+		String substate = db.getSubState(user, chatId);
+		String new_state = "CADASTRAR";
+		String new_substate = "";
+		switch(substate) {
+			case "CATEGORIA":
+				new_substate = "SUB-CATEGORIA";
+				retorno = "Insira a sub-categoria do seu serviço:";
+				break;
+			case "SUB-CATEGORIA":
+				new_substate = "SUMARIO";
+				retorno = "Insira o sumário do seu serviço:";
+				break;
+			case "SUMARIO":
+				new_substate = "DESCRICAO";
+				retorno = "Insira a descrição do seu serviço:";
+				break;
+			case "DESCRICAO":
+				new_substate = "LOCALIZACAO";
+				retorno = "Insira a sua localização!";
+				break;
+			case "LOCALIZACAO":
+				String data = db.getOptionsSelected(user, chatId);
+				String[] splitted = data.split("#");
+				
+				if(Config.DEBUG) {
+					for(int i = 0; i < splitted.length; i++) {
+						System.out.println("" + i + ": " + splitted[i]);
+					}
+				}
+				try {
+					db.addUsuario(user, message.getFrom().getUserName(), Float.parseFloat(splitted[5]), Float.parseFloat(splitted[6]));
+				}
+				catch(Exception e) {
+					db.addUsuario(user, message.getFrom().getUserName(), 0, 0);
+				}
+				db.addServico(user, splitted[1], splitted[3], splitted[4], splitted[2]);
+				retorno = "Seu serviço foi adicionado!";
+				new_state = "INICIAL";
+				new_substate = "";
+				break;
+			default:
+				new_state = "INICIAL";
+				new_substate = "";
+				retorno = "Oops, alguma coisa deu errado! :(";
+				break;
+		}
+		db.setState(user, chatId, new_state);
+		db.setSubState(user, chatId, new_substate);
+		return retorno;
 	}
 	
 	String processaBuscar(Message message) {
@@ -135,10 +201,16 @@ public class GeneralHandler extends TelegramLongPollingBot {
 					String data = db.getOptionsSelected(user, chatId);
 					String[] splitted = data.split("#");
 					
-					if(splitted[2].equals("0"))
-						retorno = "" + db.getResultadosBuscaLocalizacaoTextual(splitted[1], splitted[3]);
+					if(Config.DEBUG) {
+						for(int i = 0; i < splitted.length; i++) {
+							System.out.println("" + i + ": " + splitted[i]);
+						}
+					}
+					
+					if(splitted[3].equals("0"))
+						retorno = "" + db.getResultadosBuscaLocalizacaoTextual(splitted[2], splitted[4]);
 					else
-						retorno = "" + db.getResultadosBusca(splitted[0], splitted[1], Float.parseFloat(splitted[2]), Float.parseFloat(splitted[3]));
+						retorno = "" + db.getResultadosBusca(splitted[1], splitted[2], Float.parseFloat(splitted[3]), Float.parseFloat(splitted[4]));
 				}
 				catch(Exception e) {
 					retorno = "A busca falhou! :(";

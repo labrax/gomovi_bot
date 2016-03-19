@@ -14,7 +14,11 @@ import movile.hackathon.team_bot.entities.Usuario;
 import movile.hackathon.team_bot.utils.Colecoes;
 import movile.hackathon.team_bot.utils.MongoFacade;
 
+import org.apache.commons.codec.digest.DigestUtils;
+
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * created by Alvaro
@@ -38,19 +42,24 @@ public class DatabaseConn {
 	}
 
 	public void addServico(int userId, String categoria, String sumario, String descricao, String subCategoria){
-        BasicDBObject newServico = new BasicDBObject();
-        newServico.append("userId", userId);
-        newServico.append("categoria", categoria);
-        newServico.append("subCategoria", subCategoria);
-        newServico.append("sumario", sumario);
-        newServico.append("descricao", descricao);
-        newServico.append("tipoDocumento", "SERVICO");
 
-        colecao.insert(newServico);
+        String md5Servico = DigestUtils.md5Hex(userId + categoria + sumario + descricao + subCategoria);
+
+        if(this.getServico(md5Servico) == null) {
+            BasicDBObject newServico = new BasicDBObject();
+            newServico.append("userId", userId);
+            newServico.append("categoria", categoria);
+            newServico.append("subCategoria", subCategoria);
+            newServico.append("sumario", sumario);
+            newServico.append("descricao", descricao);
+            newServico.append("tipoDocumento", "SERVICO");
+            newServico.append("servicoId", md5Servico);
+
+            colecao.insert(newServico);
+        }
 	}
 	
 	public void addUsuario(int userId, String userName, float latitude, float longitude){
-
         BasicDBObject newUsuario = new BasicDBObject();
         newUsuario.append("userId", userId);
         newUsuario.append("userName", userName);
@@ -223,7 +232,8 @@ public class DatabaseConn {
 
         try {
             DatabaseConn conn = new DatabaseConn();
-            conn.avaliar(4,3);
+            List<String> teste = conn.getResultadosBusca("Entretenimento","Cinema", (float)100.00,(float)100.0);
+            System.out.println(teste.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -237,8 +247,21 @@ public class DatabaseConn {
 	 * @param location
 	 * @return
 	 */
-	public String getResultadosBusca(String categoria, String sub_categoria, float latitude, float longitude) {
-		return null;
+	public List<String> getResultadosBusca(String categoria, String sub_categoria, float latitude, float longitude) {
+        List<String> servicos = new ArrayList<String>();
+        BasicDBObject queryServicos = new BasicDBObject();
+        queryServicos.append("tipoDocumento","SERVICO");
+        queryServicos.append("categoria", categoria);
+        queryServicos.append("subCategoria",sub_categoria);
+
+        DBCursor cursor = colecao.find(queryServicos);
+
+        while(cursor.hasNext()) {
+            BasicDBObject servico = (BasicDBObject)cursor.next();
+            servicos.add(servico.getString("servicoId"));
+        }
+
+        return servicos;
 	}
 	
 	public String getResultadosBuscaLocalizacaoTextual(String sub_categoria, String localizacao) {
@@ -256,11 +279,7 @@ public class DatabaseConn {
 	 */
 	public String getServicosUsuario(Integer user) {
 
-        BasicDBObject queryServicos = new BasicDBObject();
-        queryServicos.append("userId",user);
-        queryServicos.append("tipoDocumento","SERVICO");
-
-        DBCursor cursor = colecao.find(queryServicos);
+        DBCursor cursor = this.getServicosSortedIndice(user);
 
         if(!cursor.hasNext()) return "Usuário não tem serviços cadastrados.";
 
@@ -283,7 +302,8 @@ public class DatabaseConn {
 	 */
 	public Boolean deletarServico(Integer user, Integer servico) {
 
-        BasicDBObject servicoObj = this.getServico(user,servico);
+        BasicDBObject servicoObj = this.getServicoIndice(user, servico);
+
         if(servicoObj != null) {
 
             BasicDBObject query = new BasicDBObject();
@@ -298,6 +318,34 @@ public class DatabaseConn {
         }
         return false;
 	}
+
+    private DBCursor getServicosSortedIndice(Integer user) {
+        BasicDBObject query = new BasicDBObject();
+        query.append("userId", user);
+        query.append("tipoDocumento", "SERVICO");
+
+        DBCursor cursor = colecao.find(query).sort(new BasicDBObject("_id", -1));
+
+        return cursor;
+    }
+
+    private BasicDBObject getServicoIndice(Integer user, Integer servico) {
+
+        DBCursor cursor = this.getServicosSortedIndice(user);
+
+        BasicDBObject servicoObj = null;
+        int i=1;
+        while(cursor.hasNext()) {
+            if(i==servico) {
+                servicoObj = (BasicDBObject)cursor.next();
+                break;
+            }
+            i++;
+            cursor.next();
+        }
+
+        return servicoObj;
+    }
 	
 	/**
 	 * retorna o histórico de compras do usuário
@@ -393,10 +441,9 @@ public class DatabaseConn {
         return usuario;
     }
 
-    private BasicDBObject getServico(Integer user, Integer servico) {
+    private BasicDBObject getServico(String md5Servico) {
         BasicDBObject query = new BasicDBObject();
-        query.append("userId", user);
-        query.append("servico", servico);
+        query.append("servicoId",md5Servico);
         query.append("tipoDocumento", "SERVICO");
 
         BasicDBObject servicoObj = (BasicDBObject)colecao.findOne(query);
