@@ -69,46 +69,53 @@ public class GeneralHandler extends TelegramLongPollingBot {
 		String newSubState = substate;
 		switch(state) {
 			case "CADASTRAR":
-				switch(substate) {
-					case "CATEGORIA":
-						newSubState = "SUB-CATEGORIA";
-						break;
-					case "SUB-CATEGORIA":
-						newSubState = "SUMARIO";
-						break;
-					case "SUMARIO":
-						newSubState = "DESCRICAO";
-						break;
-					case "DESCRICAO":
-						newSubState = "LOCALIZACAO";
-						break;
-					default:
-					case "LOCALIZACAO":
-						newState = "INICIAL";
-						newSubState = "";
-						//TODO: ACABOU DE CADASTRAR, RETORNAR CONFIRMAÇÃO
-						break;
-				}
+				processaCadastrar(message);
 				break;
 			case "INICIAL":
-				switch(message.getText().split(" ")[0]) {
-					case "/cadastrar":
-						
-						break;
-					case "/buscar":
-						break;
-					case "/listar":
-						break;
-					case "/deletar":
-						break;
-					case "/historico":
-						break;
-					case "/avaliar":
-						break;
-					default:
-						newSubState = "";
-						break;
-				}
+				processaBusca(message);
+				break;
+		}
+	}
+	
+	void processaCadastrar(Message message) {
+		switch(substate) {
+			case "CATEGORIA":
+				newSubState = "SUB-CATEGORIA";
+				break;
+			case "SUB-CATEGORIA":
+				newSubState = "SUMARIO";
+				break;
+			case "SUMARIO":
+				newSubState = "DESCRICAO";
+				break;
+			case "DESCRICAO":
+				newSubState = "LOCALIZACAO";
+				break;
+			default:
+			case "LOCALIZACAO":
+				newState = "INICIAL";
+				newSubState = "";
+				//TODO: ACABOU DE CADASTRAR, RETORNAR CONFIRMAÇÃO
+				break;
+		}
+	}
+	
+	void processaBusca(Message message) {
+		switch(message.getText().split(" ")[0]) {
+			case "/cadastrar":
+				break;
+			case "/buscar":
+				break;
+			case "/listar":
+				break;
+			case "/deletar":
+				break;
+			case "/historico":
+				break;
+			case "/avaliar":
+				break;
+			default:
+				newSubState = "";
 				break;
 		}
 	}
