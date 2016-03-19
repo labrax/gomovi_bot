@@ -10,10 +10,13 @@ public class GeneralHandler extends TelegramLongPollingBot {
 	private static String TOKEN = "198070718:AAG8BwYcnFF6_6MabfGpGXcHNo80IwVhvJs";
 	private static String USERNAME = "testbot";
 	
-	private DatabaseConn db;
+	private DatabaseConnMock db;
+	private DatabaseConnMock getDb() {
+		return DatabaseConnMock.getInstance();
+	}
 	
 	public void onUpdateReceived(Update update) {
-		db = DatabaseConn.getInstance();
+		db = getDb();
 		
 		System.out.println(update.getMessage().getFrom().getUserName() + ": " + update.getMessage().getText());
 		String retorno = interactMessage(update.getMessage());
@@ -104,7 +107,8 @@ public class GeneralHandler extends TelegramLongPollingBot {
 		
 		String retorno = "";
 		
-		String substate = db.getInstance().getSubState(user, chatId);
+		db = getDb();
+		String substate = db.getSubState(user, chatId);
 		String new_state = "BUSCAR";
 		String new_substate = "";
 		switch(substate) {
@@ -163,10 +167,10 @@ public class GeneralHandler extends TelegramLongPollingBot {
 				return_message = "Insira a categoria do serviço que deseja buscar: ";
 				break;
 			case "/listar":
-				return_message = "Estes são os serviços que você tem: " + db.getServicosUsuario(user);
+				return_message = "Estes são os serviços que você tem: " + getDb().getServicosUsuario(user);
 				break;
 			case "/deletar":
-				if(splitted.length > 1 && db.getInstance().deletarServico(user, Integer.parseInt(splitted[1])))
+				if(splitted.length > 1 && getDb().deletarServico(user, Integer.parseInt(splitted[1])))
 					return_message = "Serviço deletado!";
 				else if(splitted.length > 1)
 					return_message = "Serviço com id " + splitted[1] + " não deletado. Você inseriu algo errado?\n" + return_message;
@@ -175,10 +179,10 @@ public class GeneralHandler extends TelegramLongPollingBot {
 				break;
 			case "/historico":
 				if(splitted.length > 1)
-					return_message = "Este é o seu histórico:\n" + db.getHistoricoUsuario(user);
+					return_message = "Este é o seu histórico:\n" + getDb().getHistoricoUsuario(user);
 				break;
 			case "/avaliar":
-				if(splitted.length > 3 && db.getInstance().avaliar(Integer.parseInt(splitted[1]), Integer.parseInt(splitted[2]))) 
+				if(splitted.length > 3 && getDb().avaliar(Integer.parseInt(splitted[1]), Integer.parseInt(splitted[2]))) 
 					return_message = "Obrigado por avaliar!";
 				else
 					return_message = "Ocorreu algum problema ao avaliar :(";
@@ -188,9 +192,9 @@ public class GeneralHandler extends TelegramLongPollingBot {
 				break;
 		}
 		
-		db.getInstance().setState(user, chatId, newState);
-		db.getInstance().setSubState(user, chatId, newSubState);
-		db.getInstance().setOptionsSelected(user, chatId, "");
+		getDb().setState(user, chatId, newState);
+		getDb().setSubState(user, chatId, newSubState);
+		getDb().setOptionsSelected(user, chatId, "");
 		
 		return return_message;
 	}
