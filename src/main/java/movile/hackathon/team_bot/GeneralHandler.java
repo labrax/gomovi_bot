@@ -1,5 +1,7 @@
 package movile.hackathon.team_bot;
 
+import java.util.List;
+
 import org.telegram.telegrambots.TelegramApiException;
 import org.telegram.telegrambots.api.methods.SendMessage;
 import org.telegram.telegrambots.api.objects.Message;
@@ -187,7 +189,8 @@ public class GeneralHandler extends TelegramLongPollingBot {
 		switch(substate) {
 			case "CATEGORIA":
 				new_substate = "SUB-CATEGORIA";
-				retorno = "Insira a sub-categoria do serviço da busca:";
+				retorno = "Qual a sub-categoria do serviço que você esta buscando?";
+				retorno += listToString(db.getSubCategorias("Saúde"));
 				break;
 			case "SUB-CATEGORIA":
 				new_substate = "LOCALIZACAO";
@@ -248,12 +251,14 @@ public class GeneralHandler extends TelegramLongPollingBot {
 			case "/cadastrar":
 				newState = "CADASTRAR";
 				newSubState = "CATEGORIA";
-				return_message = "Insira a categoria do serviço que deseja cadastrar: ";
+				return_message = "Qual categoria deseja cadastrar?";
+				return_message += listToString(db.getCategorias());
 				break;
 			case "/buscar":
 				newState = "BUSCAR";
 				newSubState = "CATEGORIA";
 				return_message = "Insira a categoria do serviço que deseja buscar: ";
+				return_message += listToString(db.getCategorias());
 				break;
 			case "/listar":
 				return_message = "Estes são os serviços que você tem: " + getDb().getServicosUsuario(user);
@@ -313,6 +318,10 @@ public class GeneralHandler extends TelegramLongPollingBot {
 			return "";
 		text = text.substring(index, text.length()).trim();
 		return text;
+	}
+	
+	private String listToString(List<String> list) {
+		return String.join(", ", list);
 	}
 }
 

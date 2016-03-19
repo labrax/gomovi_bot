@@ -1,22 +1,26 @@
 package movile.hackathon.team_bot;
 
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.WriteResult;
 
-import movile.hackathon.team_bot.repository.Servico;
-import movile.hackathon.team_bot.repository.Usuario;
 import com.mongodb.*;
+import movile.hackathon.team_bot.entities.Usuario;
 import movile.hackathon.team_bot.utils.Colecoes;
 import movile.hackathon.team_bot.utils.MongoFacade;
+
+import org.apache.commons.codec.digest.DigestUtils;
 
 import java.net.UnknownHostException;
 
 /**
  * created by Alvaro
  */
-
 public class DatabaseConn {
 	private static DatabaseConn instance = null;
     private static DBCollection colecao = null;
@@ -36,17 +40,39 @@ public class DatabaseConn {
 	}
 
 	public void addServico(int userId, String categoria, String sumario, String descricao, String subCategoria){
-		
+
+        String md5Servico = DigestUtils.md5Hex(userId + categoria + sumario + descricao + subCategoria);
+
+        if(this.getServico(md5Servico) == null) {
+            BasicDBObject newServico = new BasicDBObject();
+            newServico.append("userId", userId);
+            newServico.append("categoria", categoria);
+            newServico.append("subCategoria", subCategoria);
+            newServico.append("sumario", sumario);
+            newServico.append("descricao", descricao);
+            newServico.append("tipoDocumento", "SERVICO");
+            newServico.append("servicoId", md5Servico);
+
+            colecao.insert(newServico);
+        }
 	}
 	
 	public void addUsuario(int userId, String userName, float latitude, float longitude){
-		
-		
+        BasicDBObject newUsuario = new BasicDBObject();
+        newUsuario.append("userId", userId);
+        newUsuario.append("userName", userName);
+        newUsuario.append("latitude", latitude);
+        newUsuario.append("longitude", longitude);
+        newUsuario.append("tipoDocumento", "USUARIO");
+        newUsuario.append("servicos", new BasicDBList());
+        newUsuario.append("chatStates", new BasicDBList());
+
+        colecao.insert(newUsuario);
 	}
 	
 	public String getState(Integer user, Long chatId) {
 
-        BasicDBObject queryUsuario = new BasicDBObject().append("user", user);
+        BasicDBObject queryUsuario = new BasicDBObject().append("userId", user);
         BasicDBObject usuario = (BasicDBObject) colecao.findOne(queryUsuario);
 
         if(usuario != null) {
@@ -69,14 +95,10 @@ public class DatabaseConn {
         }
 	}
 
-
-
-
-
 	public void setState(Integer user, Long chatId, String state) {
         if(this.getChatState(user, chatId)) {
             BasicDBObject query = new BasicDBObject();
-            query.append("user", user);
+            query.append("userId", user);
             query.append("chatStates.chatId", chatId);
 
             BasicDBObject update = new BasicDBObject("$set", new BasicDBObject().append("chatStates.$.state", state));
@@ -100,7 +122,7 @@ public class DatabaseConn {
 	
 	public String getSubState(Integer user, Long chatId)  {
 
-        BasicDBObject queryUsuario = new BasicDBObject().append("user", user);
+        BasicDBObject queryUsuario = new BasicDBObject().append("userId", user);
         BasicDBObject usuario = (BasicDBObject) colecao.findOne(queryUsuario);
 
         if(usuario != null) {
@@ -125,7 +147,7 @@ public class DatabaseConn {
 
         if(this.getChatState(user, chatId)) {
             BasicDBObject query = new BasicDBObject();
-            query.append("user", user);
+            query.append("userId", user);
             query.append("chatStates.chatId", chatId);
 
             BasicDBObject update = new BasicDBObject("$set", new BasicDBObject().append("chatStates.$.substate", state));
@@ -154,7 +176,7 @@ public class DatabaseConn {
      */
 	public String getOptionsSelected(Integer user, Long chatId)  {
 
-        BasicDBObject queryUsuario = new BasicDBObject().append("user", user);
+        BasicDBObject queryUsuario = new BasicDBObject().append("userId", user);
         BasicDBObject usuario = (BasicDBObject) colecao.findOne(queryUsuario);
 
         if(usuario != null) {
@@ -184,7 +206,7 @@ public class DatabaseConn {
 	public void setOptionsSelected(Integer user, Long chatId, String options_txt) {
         if(this.getChatState(user,chatId)) {
             BasicDBObject query = new BasicDBObject();
-            query.append("user", user);
+            query.append("userId", user);
             query.append("chatStates.chatId", chatId);
 
             BasicDBObject update = new BasicDBObject("$set", new BasicDBObject().append("chatStates.$.optionsSelected", options_txt));
@@ -241,11 +263,7 @@ public class DatabaseConn {
 	 */
 	public String getServicosUsuario(Integer user) {
 
-        BasicDBObject queryServicos = new BasicDBObject();
-        queryServicos.append("user",user);
-        queryServicos.append("tipoDocumento","SERVICO");
-
-        DBCursor cursor = colecao.find(queryServicos);
+        DBCursor cursor = this.getServicosSortedIndice(user);
 
         if(!cursor.hasNext()) return "Usuário não tem serviços cadastrados.";
 
@@ -268,12 +286,13 @@ public class DatabaseConn {
 	 */
 	public Boolean deletarServico(Integer user, Integer servico) {
 
-        BasicDBObject servicoObj = this.getServico(user,servico);
+        BasicDBObject servicoObj = this.getServicoIndice(user, servico);
+
         if(servicoObj != null) {
 
             BasicDBObject query = new BasicDBObject();
             query.append("tipoDocumento", "SERVICO");
-            query.append("user", user);
+            query.append("userId", user);
             query.append("servico", servico);
 
 
@@ -283,6 +302,34 @@ public class DatabaseConn {
         }
         return false;
 	}
+
+    private DBCursor getServicosSortedIndice(Integer user) {
+        BasicDBObject query = new BasicDBObject();
+        query.append("userId", user);
+        query.append("tipoDocumento", "SERVICO");
+
+        DBCursor cursor = colecao.find(query).sort(new BasicDBObject("_id", -1));
+
+        return cursor;
+    }
+
+    private BasicDBObject getServicoIndice(Integer user, Integer servico) {
+
+        DBCursor cursor = this.getServicosSortedIndice(user);
+
+        BasicDBObject servicoObj = null;
+        int i=1;
+        while(cursor.hasNext()) {
+            if(i==servico) {
+                servicoObj = (BasicDBObject)cursor.next();
+                break;
+            }
+            i++;
+            cursor.next();
+        }
+
+        return servicoObj;
+    }
 	
 	/**
 	 * retorna o histórico de compras do usuário
@@ -311,6 +358,14 @@ public class DatabaseConn {
             return false;
         }
 	}
+	
+	public List<String> getCategorias() {
+		return new ArrayList<>();
+	}
+	
+	public List<String> getSubCategorias(String categoria) {
+		return new ArrayList<>();
+	}
 
     /**
      * retorna as ofertas que um usuário tem pesquisando pelo nome dele!
@@ -322,22 +377,22 @@ public class DatabaseConn {
         BasicDBObject usuario = this.getUsuarioNome(nome);
 
         StringBuilder builder = new StringBuilder();
-        builder.append("Nome: "+usuario.getString("nome")+"\n");
-        builder.append("Servicos: "+this.getServicosUsuario(usuario.getInt("user"))+"\n");
+        builder.append("Nome: "+usuario.getString("userName")+"\n");
+        builder.append("Servicos: "+this.getServicosUsuario(usuario.getInt("userId"))+"\n");
 
         return builder.toString();
     }
 
     private BasicDBObject createQueryUser(Integer user) {
         BasicDBObject query = new BasicDBObject();
-        query.append("user", user);
+        query.append("userId", user);
         query.append("tipoDocumento","USUARIO");
         return query;
     }
 
     private BasicDBObject createQueryNome(String nome) {
         BasicDBObject query = new BasicDBObject();
-        query.append("nome", nome);
+        query.append("userName", nome);
         query.append("tipoDocumento","USUARIO");
         return query;
     }
@@ -354,7 +409,7 @@ public class DatabaseConn {
 
     private BasicDBObject getUsuario(Integer user) {
         BasicDBObject query = new BasicDBObject();
-        query.append("user", user);
+        query.append("userId", user);
         query.append("tipoDocumento", "USUARIO");
 
         BasicDBObject usuario = (BasicDBObject)colecao.findOne(query);
@@ -363,17 +418,16 @@ public class DatabaseConn {
 
     private BasicDBObject getUsuarioNome(String nome) {
         BasicDBObject query = new BasicDBObject();
-        query.append("nome", nome);
+        query.append("userName", nome);
         query.append("tipoDocumento", "USUARIO");
 
         BasicDBObject usuario = (BasicDBObject)colecao.findOne(query);
         return usuario;
     }
 
-    private BasicDBObject getServico(Integer user, Integer servico) {
+    private BasicDBObject getServico(String md5Servico) {
         BasicDBObject query = new BasicDBObject();
-        query.append("user", user);
-        query.append("servico", servico);
+        query.append("servicoId",md5Servico);
         query.append("tipoDocumento", "SERVICO");
 
         BasicDBObject servicoObj = (BasicDBObject)colecao.findOne(query);
@@ -400,6 +454,4 @@ public class DatabaseConn {
         }
         return false;
     }
-
-
 }
