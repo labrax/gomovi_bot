@@ -185,7 +185,7 @@ public class DatabaseConn {
         query.append("user", user);
         query.append("servico", servico);
 
-
+        return true;
 
 
         return false;

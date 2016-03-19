@@ -11,9 +11,12 @@ public class GeneralHandler extends TelegramLongPollingBot {
 	private static String USERNAME = Config.username;
 	
 	private DatabaseConnMock db;
+	private DatabaseConnMock getDb() {
+		return DatabaseConnMock.getInstance();
+	}
 	
 	public void onUpdateReceived(Update update) {
-		db = DatabaseConnMock.getInstance();
+		db = getDb();
 		
 		String retorno = interactMessage(update.getMessage());
 		if(Config.DEBUG)
@@ -99,6 +102,22 @@ public class GeneralHandler extends TelegramLongPollingBot {
 	}
 	
 	String processaCadastrar(Message message) {
+		int user = message.getFrom().getId();
+		long chatId = message.getChatId();
+		String substate = getDb().getSubState(user, chatId);
+		
+		String currentOptions = db.getOptionsSelected(user, chatId);
+		
+		switch (substate) {
+		case "CATEGORIA":
+
+			db.setOptionsSelected(user, chatId, "" + currentOptions + "#" + message.getLocation());
+			break;
+
+		default:
+			break;
+		}
+		
 		return "";
 	}
 	
@@ -107,7 +126,7 @@ public class GeneralHandler extends TelegramLongPollingBot {
 		Long chatId = message.getChatId();
 		
 		String retorno = "";
-		
+
 		String substate = db.getSubState(user, chatId);
 		String new_state = "BUSCAR";
 		String new_substate = "";
@@ -174,7 +193,7 @@ public class GeneralHandler extends TelegramLongPollingBot {
 				return_message = "Insira a categoria do serviço que deseja buscar: ";
 				break;
 			case "/listar":
-				return_message = "Estes são os serviços que você tem: " + db.getServicosUsuario(user);
+				return_message = "Estes são os serviços que você tem: " + getDb().getServicosUsuario(user);
 				break;
 			case "/deletar":
 				if(splitted.length > 1 && db.deletarServico(user, Integer.parseInt(splitted[1])))
@@ -186,7 +205,7 @@ public class GeneralHandler extends TelegramLongPollingBot {
 				break;
 			case "/historico":
 				if(splitted.length > 1)
-					return_message = "Este é o seu histórico:\n" + db.getHistoricoUsuario(user);
+					return_message = "Este é o seu histórico:\n" + getDb().getHistoricoUsuario(user);
 				break;
 			case "/detalhes":
 				String get_db = "";
@@ -213,6 +232,19 @@ public class GeneralHandler extends TelegramLongPollingBot {
 		db.setOptionsSelected(user, chatId, "");
 		
 		return return_message;
+	}
+	
+	private String getCommand(Message message) {
+		return message.getText().split(" ")[0];
+	}
+
+	private String getCommandArguments(Message message) {
+		String text = message.getText();
+		int index = text.indexOf(" ");
+		if (index == -1)
+			return "";
+		text = text.substring(index, text.length()).trim();
+		return text;
 	}
 }
 
