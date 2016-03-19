@@ -1,12 +1,15 @@
 package movile.hackathon.team_bot;
 
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
+
 import movile.hackathon.team_bot.utils.Colecoes;
 import movile.hackathon.team_bot.utils.MongoFacade;
-
-import java.net.UnknownHostException;
 
 
 public class DatabaseConn {
@@ -208,5 +211,13 @@ public class DatabaseConn {
 	 */
 	public Boolean avaliar(Integer user, Integer avaliacao) {
 		return false;
+	}
+	
+	public List<String> getCategorias() {
+		return new ArrayList<>();
+	}
+	
+	public List<String> getSubCategorias(String categoria) {
+		return new ArrayList<>();
 	}
 }
