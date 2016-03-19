@@ -129,27 +129,29 @@ public class GeneralHandler extends TelegramLongPollingBot {
 		String substate = db.getSubState(user, chatId);
 		String new_state = "CADASTRAR";
 		String new_substate = "";
+
+		String data = db.getOptionsSelected(user, chatId);
+		String[] splitted = data.split("#");
+		
 		switch(substate) {
 			case "CATEGORIA":
 				new_substate = "SUB-CATEGORIA";
-				retorno = "Insira a sub-categoria do seu serviço:";
+				retorno = "Qual a sub-categoria do serviço?";
+				retorno += listToString(db.getSubCategorias(splitted[0]));
 				break;
 			case "SUB-CATEGORIA":
 				new_substate = "SUMARIO";
-				retorno = "Insira o sumário do seu serviço:";
+				retorno = "Em poucas palavras, o que você faz?";
 				break;
 			case "SUMARIO":
 				new_substate = "DESCRICAO";
-				retorno = "Insira a descrição do seu serviço:";
+				retorno = "Você pode detalhar os seus serviços, se quiser";
 				break;
 			case "DESCRICAO":
 				new_substate = "LOCALIZACAO";
-				retorno = "Insira a sua localização!";
+				retorno = "Insira a sua localização";
 				break;
 			case "LOCALIZACAO":
-				String data = db.getOptionsSelected(user, chatId);
-				String[] splitted = data.split("#");
-				
 				if(Config.DEBUG) {
 					for(int i = 0; i < splitted.length; i++) {
 						System.out.println("" + i + ": " + splitted[i]);
