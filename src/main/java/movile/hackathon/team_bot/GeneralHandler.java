@@ -16,8 +16,12 @@ public class GeneralHandler extends TelegramLongPollingBot {
 		db = DatabaseConn.getInstance();
 		
 		System.out.println(update.getMessage().getFrom().getUserName() + ": " + update.getMessage().getText());
+		String retorno = interactMessage(update.getMessage());
+		System.out.println(retorno);
+		
 		SendMessage sendMessage = new SendMessage();
-		sendMessage.setText("huehuehue br? " + update.getMessage().getText());
+		//sendMessage.setText("huehuehue br? " + update.getMessage().getText());
+		sendMessage.setText(retorno);
         sendMessage.setChatId(String.valueOf(update.getMessage().getChatId()));
         try {
             sendMessage(sendMessage);
@@ -88,26 +92,7 @@ public class GeneralHandler extends TelegramLongPollingBot {
 	}
 	
 	String processaCadastrar(Message message) {
-		switch(substate) {
-			case "CATEGORIA":
-				newSubState = "SUB-CATEGORIA";
-				break;
-			case "SUB-CATEGORIA":
-				newSubState = "SUMARIO";
-				break;
-			case "SUMARIO":
-				newSubState = "DESCRICAO";
-				break;
-			case "DESCRICAO":
-				newSubState = "LOCALIZACAO";
-				break;
-			default:
-			case "LOCALIZACAO":
-				newState = "INICIAL";
-				newSubState = "";
-				//TODO: ACABOU DE CADASTRAR, RETORNAR CONFIRMAÇÃO
-				break;
-		}
+		return "";
 	}
 	
 	String processaBuscar(Message message) {
@@ -138,7 +123,14 @@ public class GeneralHandler extends TelegramLongPollingBot {
 	String processaInicial(Message message) {
 		String newState = "INICIAL";
 		String newSubState = "";
-		String return_message = "O quê deseja fazer?";
+		String return_message = "O quê deseja fazer?\n" + 
+"/cadastrar cadastrar um serviço\n"
++ "/buscar buscar um serviço\n"
++ "/listar listar os seus serviços oferecidos\n"
++ "/deletar [id] delete um serviço seu oferecido\n"
++ "/historico ver seu histórico de serviços selecionados\n"
++ "/avaliar [usuario] [nota] avalie um usuário por um serviço oferecido\n"
++ "/cancelar cancele um procedimento atual";
 		
 		Integer user = message.getFrom().getId();
 		Long chatId = message.getChatId();

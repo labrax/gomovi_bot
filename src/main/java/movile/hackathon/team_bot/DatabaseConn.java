@@ -97,6 +97,6 @@ public class DatabaseConn {
 	 * @return TRUE IF SUCCESS; FALSE OTHERWISE
 	 */
 	public Boolean avaliar(Integer user, Integer avaliacao) {
-		
+		return false;
 	}
 }
