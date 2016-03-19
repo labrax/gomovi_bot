@@ -34,8 +34,7 @@ public class GeneralHandler extends TelegramLongPollingBot {
 		return TOKEN;
 	}
 
-	public void interactMessage(Message message) {
-		String CURR_STATE = db.getState(message.getFrom().getId(), message.getChatId()); //pega do db
+	public String interactMessage(Message message) {
 		Integer user = message.getFrom().getId();
 		Long chatId = message.getChatId();
 		
@@ -46,38 +45,49 @@ public class GeneralHandler extends TelegramLongPollingBot {
 		String substate = db.getSubState(user, chatId);
 		
 		switch(substate) {
+			case "TEXTO":
+				db.setOptionsSelected(user, chatId, db.getOptionsSelected(user, chatId) + "#" + message.getText() );
+				break;
 			case "CATEGORIA":
-				db.setOptionsSelected(message.getFrom().getId(), message.getChatId(), db.getOptionsSelected(message.getFrom().getId(), message.getChatId()) + "#" + message.getText() );
+				db.setOptionsSelected(user, chatId, db.getOptionsSelected(user, chatId) + "#" + message.getText() );
 				break;
 			case "SUB-CATEGORIA":
-				db.setOptionsSelected(message.getFrom().getId(), message.getChatId(), db.getOptionsSelected(message.getFrom().getId(), message.getChatId()) + "#" + message.getText() );
+				db.setOptionsSelected(user, chatId, db.getOptionsSelected(user, chatId) + "#" + message.getText() );
 				break;
 			case "SUMARIO":
-				db.setOptionsSelected(message.getFrom().getId(), message.getChatId(), db.getOptionsSelected(message.getFrom().getId(), message.getChatId()) + "#" + message.getText() );
+				db.setOptionsSelected(user, chatId, db.getOptionsSelected(user, chatId) + "#" + message.getText() );
 				break;
 			case "DESCRICAO":
-				db.setOptionsSelected(message.getFrom().getId(), message.getChatId(), db.getOptionsSelected(message.getFrom().getId(), message.getChatId()) + "#" + message.getText() );
+				db.setOptionsSelected(user, chatId, db.getOptionsSelected(user, chatId) + "#" + message.getText() );
 				break;
 			case "LOCALIZACAO":
-				db.setOptionsSelected(message.getFrom().getId(), message.getChatId(), db.getOptionsSelected(message.getFrom().getId(), message.getChatId()) + "#" + message.getLocation() );
+				db.setOptionsSelected(user, chatId, db.getOptionsSelected(user, chatId) + "#" + message.getLocation() );
 				break;
 			default:
 				break;
 		}
 		
-		String newState = state;
-		String newSubState = substate;
 		switch(state) {
 			case "CADASTRAR":
-				processaCadastrar(message);
+				return processaCadastrar(message);
+			case "BUSCAR":
+				return processaBuscar(message);
+			case "LISTAR":
 				break;
+			case "DELETAR":
+				break;
+			case "HISTORICO":
+				break;
+			case "AVALIAR":
+				break;
+			default:
 			case "INICIAL":
-				processaBusca(message);
-				break;
+				return processaInicial(message);
 		}
+		return "";
 	}
 	
-	void processaCadastrar(Message message) {
+	String processaCadastrar(Message message) {
 		switch(substate) {
 			case "CATEGORIA":
 				newSubState = "SUB-CATEGORIA";
@@ -100,23 +110,83 @@ public class GeneralHandler extends TelegramLongPollingBot {
 		}
 	}
 	
-	void processaBusca(Message message) {
-		switch(message.getText().split(" ")[0]) {
+	String processaBuscar(Message message) {
+		Integer user = message.getFrom().getId();
+		Long chatId = message.getChatId();
+		
+		String substate = db.getInstance().getSubState(user, chatId);
+		String new_substate = "";
+		switch(substate) {
+			case "CATEGORIA":
+				new_substate = "SUB-CATEGORIA";
+				break;
+			case "SUB-CATEGORIA":
+				new_substate = "LOCALIZACAO";
+				break;
+			case "LOCALIZACAO":
+				String data = db.getInstance().getOptionsSelected(user, chatId);
+				String[] splitted = data.split("#");
+				System.out.println(splitted);
+				return db.getInstance().getResultadosBusca(splitted[0], splitted[1], Float.parseFloat(splitted[2]), Float.parseFloat(splitted[3]));
+			default:
+				break;
+		}
+		
+		return "";
+	}
+	
+	String processaInicial(Message message) {
+		String newState = "INICIAL";
+		String newSubState = "";
+		String return_message = "O quê deseja fazer?";
+		
+		Integer user = message.getFrom().getId();
+		Long chatId = message.getChatId();
+		
+		String [] splitted = message.getText().split(" ");
+		switch(splitted[0]) {
 			case "/cadastrar":
+				newState = "CADASTRAR";
+				newSubState = "CATEGORIA";
+				return_message = "Insira a categoria do serviço que deseja cadastrar: ";
 				break;
 			case "/buscar":
+				newState = "BUSCAR";
+				newSubState = "CATEGORIA";
+				return_message = "Insira a categoria do serviço que deseja buscar: ";
 				break;
 			case "/listar":
+				newState = "LISTAR";
+				return_message = "Estes são os serviços que você tem: " + db.getServicosUsuario(user);
 				break;
 			case "/deletar":
+				newState = "DELETAR";
+				if(splitted.length > 1 && db.getInstance().deletarServico(user, Integer.parseInt(splitted[1])))
+					return_message = "Serviço deletado!";
+				else
+					return_message = "Serviço com id " + splitted[1] + " não deletado. Você inseriu algo errado?\n" + return_message;
 				break;
 			case "/historico":
+				newState = "HISTORICO";
+				if(splitted.length > 1)
+					return_message = "Este é o seu histórico:\n" + db.getHistoricoUsuario(user);
 				break;
 			case "/avaliar":
+				newState = "AVALIAR";
+				if(splitted.length > 3 && db.getInstance().avaliar(Integer.parseInt(splitted[1]), Integer.parseInt(splitted[2]))) 
+					return_message = "Obrigado por avaliar!";
+				else
+					return_message = "Ocorreu algum problema ao avaliar :(";
 				break;
 			default:
 				newSubState = "";
 				break;
 		}
+		
+		db.getInstance().setState(user, chatId, newState);
+		db.getInstance().setSubState(user, chatId, newSubState);
+		db.getInstance().setOptionsSelected(user, chatId, "");
+		
+		return return_message;
 	}
 }
