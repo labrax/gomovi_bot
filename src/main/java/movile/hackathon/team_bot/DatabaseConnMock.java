@@ -102,4 +102,13 @@ public class DatabaseConnMock {
 	public Boolean avaliar(Integer user, Integer avaliacao) {
 		return false;
 	}
+	
+	/**
+	 * retorna as ofertas que um usuário tem pesquisando pelo nome dele!
+	 * @param user
+	 * @return
+	 */
+	public String getDetalhesUsuario(String nome) {
+		return "";
+	}
 }
