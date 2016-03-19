@@ -239,7 +239,6 @@ public class DatabaseConn {
 
             return result.getN() == 1;
         }
-
         return false;
 	}
 	
@@ -261,6 +260,15 @@ public class DatabaseConn {
 	public Boolean avaliar(Integer user, Integer avaliacao) {
 		return false;
 	}
+
+    /**
+     * retorna as ofertas que um usuário tem pesquisando pelo nome dele!
+     * @param user
+     * @return
+     */
+    public String getDetalhesUsuario(String nome) {
+        return "";
+    }
 
     private BasicDBObject createQueryUser(Integer user) {
         BasicDBObject query = new BasicDBObject();
@@ -318,4 +326,6 @@ public class DatabaseConn {
         }
         return false;
     }
+
+
 }
