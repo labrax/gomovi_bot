@@ -222,6 +222,8 @@ public class GeneralHandler extends TelegramLongPollingBot {
 					retorno = "A busca falhou! :(";
 					e.printStackTrace();
 				}
+                if(retorno.equals(""))
+                    retorno = "Não encontramos nada! :(";
 				new_state = "INICIAL";
 				new_substate = "";
 				break;

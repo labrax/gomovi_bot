@@ -265,7 +265,7 @@ public class DatabaseConn {
             BasicDBObject servico = (BasicDBObject)cursor.next();
             //servicos.add(servico.getString("servicoId"));
 
-            servicos += (i+ ") "+servico.getString("userName") + ":  "+servico.getString("sumario"));
+            servicos += (i+ ") "+servico.getString("userName") + ":  "+servico.getString("sumario") + "\n");
             i++;
         }
 
@@ -295,7 +295,12 @@ public class DatabaseConn {
         StringBuilder builder = new StringBuilder();
         while(cursor.hasNext()) {
             BasicDBObject servico = (BasicDBObject)cursor.next();
-            builder.append(i + ": "+servico.getString("sumario") + "\n");
+            builder.append("\n\n"+
+                    "Categoria: "+servico.getString("categoria")+"\n" +
+                    "Subcategoria: "+servico.getString("subCategoria")+"\n" +
+                    "Resumo: "+servico.getString("sumario")+"\n" +
+                    "Descrição: "+servico.getString("descricao")+
+                    "\n\n");
             i++;
         }
 
@@ -401,8 +406,8 @@ public class DatabaseConn {
         BasicDBObject usuario = this.getUsuarioNome(nome);
 
         StringBuilder builder = new StringBuilder();
-        builder.append("Nome: "+usuario.getString("userName")+"\n");
-        builder.append("Servicos: "+this.getServicosUsuario(usuario.getInt("userId"))+"\n");
+        builder.append("\nNome: "+usuario.getString("userName")+"\n");
+        builder.append("Serviços: "+this.getServicosUsuario(usuario.getInt("userId"))+"\n");
 
         return builder.toString();
     }
