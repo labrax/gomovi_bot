@@ -7,7 +7,8 @@ public class DatabaseConnMock {
 
 	HashMap<String, Object> stateDb = new HashMap<>();
 	HashMap<String, Object> subStateDb = new HashMap<>();
-	
+	HashMap<String, Object> OptionsSelectedDb = new HashMap<>();
+	HashMap<String, Object> ResultadosBuscaDb = new HashMap<>();
 	private DatabaseConnMock() {}
 	
 	public static DatabaseConnMock getInstance() {
@@ -41,7 +42,9 @@ public class DatabaseConnMock {
 	 * @return
 	 */
 	public String getOptionsSelected(Integer user, Long chatId) {
-		return null;
+		if(!OptionsSelectedDb.containsKey(user+"_"+chatId))
+			return null;
+		return (String) OptionsSelectedDb.get(user+"_"+chatId);
 	}
 	
 	/**
@@ -51,7 +54,7 @@ public class DatabaseConnMock {
 	 * @param options_txt
 	 */
 	public void setOptionsSelected(Integer user, Long chatId, String options_txt) {
-		
+		OptionsSelectedDb.put(user +"_"+ chatId, options_txt);
 	}
 	
 	/**
