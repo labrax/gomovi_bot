@@ -45,9 +45,6 @@ public class GeneralHandler extends TelegramLongPollingBot {
 		Integer user = message.getFrom().getId();
 		Long chatId = message.getChatId();
 		
-		if(message.getText() == "/cancelar")
-			db.setState(user, chatId, "INICIAL");
-		
 		String state = db.getState(user, chatId);
 		String substate = db.getSubState(user, chatId);
 		
@@ -221,6 +218,11 @@ public class GeneralHandler extends TelegramLongPollingBot {
 					return_message = "Obrigado por avaliar!";
 				else
 					return_message = "Ocorreu algum problema ao avaliar :(";
+				break;
+			case "/cancelar":
+				db.setState(user, chatId, "INICIAL");
+				db.setSubState(user, chatId, "");
+				db.setOptionsSelected(user, chatId, "");
 				break;
 			default:
 				newSubState = "";
