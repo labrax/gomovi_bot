@@ -1,6 +1,8 @@
 package movile.hackathon.team_bot;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import movile.hackathon.team_bot.repository.Servico;
 import movile.hackathon.team_bot.repository.Usuario;
@@ -13,7 +15,6 @@ public class DatabaseConnMock {
 	HashMap<String, Object> optionsSelectedDb = new HashMap<>();
 	HashMap<String, Object> resultadosBuscaDb = new HashMap<>();
 	HashMap<Integer, Object> usuariosDb = new HashMap<>();
-	
 	
 	private DatabaseConnMock() {}
 	
@@ -85,8 +86,18 @@ public class DatabaseConnMock {
 	 * @param location
 	 * @return
 	 */
-	public String getResultadosBusca(String categoria, String sub_categoria, float latitude, float longitude) {
-		return null;
+	public List<Usuario> getResultadosBusca(String categoria, String subCategoria, float latitude, float longitude) {
+		List<Usuario> users = new ArrayList<>();
+		for (Integer m : usuariosDb.keySet()) {
+			Usuario usuario = (Usuario) usuariosDb.get(m);
+			for (Servico n : usuario.getServicos()) {
+				if(n.getCategoria().equals(categoria) &&
+				 n.getSubCategoria().equals(subCategoria)){
+					users.add(usuario);
+				}
+			}
+		}
+		return users;
 	}
 	
 	/**
