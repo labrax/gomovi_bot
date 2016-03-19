@@ -2,8 +2,8 @@ package movile.hackathon.team_bot;
 
 import java.util.HashMap;
 
-import movile.hackathon.team_bot.repository.Servico;
-import movile.hackathon.team_bot.repository.Usuario;
+import movile.hackathon.team_bot.entities.Servico;
+import movile.hackathon.team_bot.entities.Usuario;
 
 public class DatabaseConnMock {
 	private static DatabaseConnMock instance = null; 
