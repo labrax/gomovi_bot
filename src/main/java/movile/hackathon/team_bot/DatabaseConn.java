@@ -7,11 +7,15 @@ import com.mongodb.WriteResult;
 
 import movile.hackathon.team_bot.repository.Servico;
 import movile.hackathon.team_bot.repository.Usuario;
+import com.mongodb.*;
 import movile.hackathon.team_bot.utils.Colecoes;
 import movile.hackathon.team_bot.utils.MongoFacade;
 
 import java.net.UnknownHostException;
 
+/**
+ * created by Alvaro
+ */
 
 public class DatabaseConn {
 	private static DatabaseConn instance = null;
@@ -104,7 +108,7 @@ public class DatabaseConn {
             BasicDBObject chatState;
             for(Object chatStateObj : chatStates) {
                 chatState = (BasicDBObject) chatStateObj;
-                if(chatState.getLong("chatId") == chatId) {
+                    if(chatState.getLong("chatId") == chatId) {
                     return chatState.getString("substate");
                 }
             }
@@ -204,7 +208,7 @@ public class DatabaseConn {
 
         try {
             DatabaseConn conn = new DatabaseConn();
-            conn.setState(1,Long.valueOf(5678),"aaaala");
+            conn.avaliar(4,3);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -228,7 +232,24 @@ public class DatabaseConn {
 	 * @return
 	 */
 	public String getServicosUsuario(Integer user) {
-		return null;
+
+        BasicDBObject queryServicos = new BasicDBObject();
+        queryServicos.append("user",user);
+        queryServicos.append("tipoDocumento","SERVICO");
+
+        DBCursor cursor = colecao.find(queryServicos);
+
+        if(!cursor.hasNext()) return "Usuário não tem serviços cadastrados.";
+
+        int i=1;
+        StringBuilder builder = new StringBuilder();
+        while(cursor.hasNext()) {
+            BasicDBObject servico = (BasicDBObject)cursor.next();
+            builder.append(i + ": "+servico.getString("sumario") + "\n");
+            i++;
+        }
+
+        return builder.toString();
 	}
 	
 	/**
@@ -246,6 +267,7 @@ public class DatabaseConn {
             query.append("tipoDocumento", "SERVICO");
             query.append("user", user);
             query.append("servico", servico);
+
 
             WriteResult result = colecao.remove(query);
 
@@ -269,8 +291,17 @@ public class DatabaseConn {
 	 * @param avaliacao
 	 * @return TRUE IF SUCCESS; FALSE OTHERWISE
 	 */
-	public Boolean avaliar(Integer user, Integer avaliacao) {
-		return false;
+	public Boolean avaliar(Integer servico, Integer avaliacao) {
+		BasicDBObject query = new BasicDBObject();
+		query.append("tipoDocumento","SERVICO");
+		query.append("servico", servico);
+        BasicDBObject update = new BasicDBObject("$set", new BasicDBObject().append("avaliacao", avaliacao.toString()));
+        try {
+            colecao.update(query,update, true, false);
+            return true;
+        }catch (Exception e){
+            return false;
+        }
 	}
 
     /**
@@ -279,12 +310,26 @@ public class DatabaseConn {
      * @return
      */
     public String getDetalhesUsuario(String nome) {
-        return "";
+
+        BasicDBObject usuario = this.getUsuarioNome(nome);
+
+        StringBuilder builder = new StringBuilder();
+        builder.append("Nome: "+usuario.getString("nome")+"\n");
+        builder.append("Servicos: "+this.getServicosUsuario(usuario.getInt("user"))+"\n");
+
+        return builder.toString();
     }
 
     private BasicDBObject createQueryUser(Integer user) {
         BasicDBObject query = new BasicDBObject();
         query.append("user", user);
+        query.append("tipoDocumento","USUARIO");
+        return query;
+    }
+
+    private BasicDBObject createQueryNome(String nome) {
+        BasicDBObject query = new BasicDBObject();
+        query.append("nome", nome);
         query.append("tipoDocumento","USUARIO");
         return query;
     }
@@ -299,15 +344,18 @@ public class DatabaseConn {
         return newChatState;
     }
 
-    private BasicDBList getChatStates(Integer user, Long chatId) {
-        BasicDBObject usuario = this.getUsuario(user);
-        if(usuario != null) return (BasicDBList)usuario.get("chatStates");
-        return null;
-    }
-
     private BasicDBObject getUsuario(Integer user) {
         BasicDBObject query = new BasicDBObject();
         query.append("user", user);
+        query.append("tipoDocumento", "USUARIO");
+
+        BasicDBObject usuario = (BasicDBObject)colecao.findOne(query);
+        return usuario;
+    }
+
+    private BasicDBObject getUsuarioNome(String nome) {
+        BasicDBObject query = new BasicDBObject();
+        query.append("nome", nome);
         query.append("tipoDocumento", "USUARIO");
 
         BasicDBObject usuario = (BasicDBObject)colecao.findOne(query);
@@ -322,6 +370,12 @@ public class DatabaseConn {
 
         BasicDBObject servicoObj = (BasicDBObject)colecao.findOne(query);
         return servicoObj;
+    }
+
+    private BasicDBList getChatStates(Integer user, Long chatId) {
+        BasicDBObject usuario = this.getUsuario(user);
+        if(usuario != null) return (BasicDBList)usuario.get("chatStates");
+        return null;
     }
 
     private boolean getChatState(Integer user, Long chatId) {
