@@ -133,27 +133,29 @@ public class GeneralHandler extends TelegramLongPollingBot {
 		String substate = db.getSubState(user, chatId);
 		String new_state = "CADASTRAR";
 		String new_substate = "";
+
+		String data = db.getOptionsSelected(user, chatId);
+		String[] splitted = data.split("#");
+		
 		switch(substate) {
 			case "CATEGORIA":
 				new_substate = "SUB-CATEGORIA";
-				retorno = "Insira a sub-categoria do seu serviço:";
+				retorno = "Qual a sub-categoria do serviço?";
+				retorno += listToString(db.getSubCategorias(splitted[0]));
 				break;
 			case "SUB-CATEGORIA":
 				new_substate = "SUMARIO";
-				retorno = "Insira o sumário do seu serviço:";
+				retorno = "Em poucas palavras, o que você faz?";
 				break;
 			case "SUMARIO":
 				new_substate = "DESCRICAO";
-				retorno = "Insira a descrição do seu serviço:";
+				retorno = "Você pode detalhar os seus serviços, se quiser";
 				break;
 			case "DESCRICAO":
 				new_substate = "LOCALIZACAO";
-				retorno = "Insira a sua localização!";
+				retorno = "Insira a sua localização";
 				break;
 			case "LOCALIZACAO":
-				String data = db.getOptionsSelected(user, chatId);
-				String[] splitted = data.split("#");
-				
 				if(Config.DEBUG) {
 					for(int i = 0; i < splitted.length; i++) {
 						System.out.println("" + i + ": " + splitted[i]);
@@ -193,7 +195,7 @@ public class GeneralHandler extends TelegramLongPollingBot {
 		switch(substate) {
 			case "CATEGORIA":
 				new_substate = "SUB-CATEGORIA";
-				retorno = "Qual a sub-categoria do serviço que você esta buscando?";
+				retorno = "Qual a sub-categoria do serviço que você esta buscando?\n\n";
 				retorno += listToString(db.getSubCategorias("Saúde"));
 				break;
 			case "SUB-CATEGORIA":
@@ -255,13 +257,13 @@ public class GeneralHandler extends TelegramLongPollingBot {
 			case "/cadastrar":
 				newState = "CADASTRAR";
 				newSubState = "CATEGORIA";
-				return_message = "Qual categoria deseja cadastrar?";
+				return_message = "Qual categoria deseja cadastrar?\n\n";
 				return_message += listToString(db.getCategorias());
 				break;
 			case "/buscar":
 				newState = "BUSCAR";
 				newSubState = "CATEGORIA";
-				return_message = "Insira a categoria do serviço que deseja buscar: ";
+				return_message = "Qual a categoria do serviço que deseja buscar?\n\n";
 				return_message += listToString(db.getCategorias());
 				break;
 			case "/listar":
@@ -325,7 +327,7 @@ public class GeneralHandler extends TelegramLongPollingBot {
 	}
 	
 	private String listToString(List<String> list) {
-		return String.join(", ", list);
+		return String.join("\n", list);
 	}
 }
 
