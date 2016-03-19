@@ -144,7 +144,10 @@ public class GeneralHandler extends TelegramLongPollingBot {
 					String data = db.getOptionsSelected(user, chatId);
 					String[] splitted = data.split("#");
 					
-					retorno = "" + db.getResultadosBusca(splitted[0], splitted[1], Float.parseFloat(splitted[2]), Float.parseFloat(splitted[3]));
+					if(splitted[2].equals("0"))
+						retorno = "" + db.getResultadosBuscaLocalizacaoTextual(splitted[1], splitted[3]);
+					else
+						retorno = "" + db.getResultadosBusca(splitted[0], splitted[1], Float.parseFloat(splitted[2]), Float.parseFloat(splitted[3]));
 				}
 				catch(Exception e) {
 					retorno = "A busca falhou! :(";

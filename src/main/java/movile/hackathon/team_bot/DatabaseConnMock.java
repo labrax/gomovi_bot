@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import movile.hackathon.team_bot.repository.Servico;
-import movile.hackathon.team_bot.repository.Usuario;
+import movile.hackathon.team_bot.entities.Servico;
+import movile.hackathon.team_bot.entities.Usuario;
 
 public class DatabaseConnMock {
 	private static DatabaseConnMock instance = null; 
@@ -98,6 +98,14 @@ public class DatabaseConnMock {
 			}
 		}
 		return users;
+	}
+	
+	public String getResultadosBuscaLocalizacaoTextual(String sub_categoria, String localizacao) {
+		return "";
+	}
+	
+	public String getResultadosBuscaTexto(String texto) {
+		return "";
 	}
 	
 	/**
