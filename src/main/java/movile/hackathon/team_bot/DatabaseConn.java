@@ -1,5 +1,9 @@
 package movile.hackathon.team_bot;
 
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
@@ -17,7 +21,6 @@ import java.net.UnknownHostException;
 /**
  * created by Alvaro
  */
-
 public class DatabaseConn {
 	private static DatabaseConn instance = null;
     private static DBCollection colecao = null;
@@ -355,6 +358,14 @@ public class DatabaseConn {
             return false;
         }
 	}
+	
+	public List<String> getCategorias() {
+		return new ArrayList<>();
+	}
+	
+	public List<String> getSubCategorias(String categoria) {
+		return new ArrayList<>();
+	}
 
     /**
      * retorna as ofertas que um usuário tem pesquisando pelo nome dele!
@@ -443,6 +454,4 @@ public class DatabaseConn {
         }
         return false;
     }
-
-
 }
