@@ -7,7 +7,7 @@ import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 
 public class GeneralHandler extends TelegramLongPollingBot {
-	private static String TOKEN = "198070718:AAG8BwYcnFF6_6MabfGpGXcHNo80IwVhvJs";
+	private static String TOKEN = "177468357:AAHnVizr1jRjhAQJnvEIbK94AS1yP_O9hvw";
 	private static String USERNAME = "testbot";
 	
 	private DatabaseConnMock db;
@@ -98,6 +98,22 @@ public class GeneralHandler extends TelegramLongPollingBot {
 	}
 	
 	String processaCadastrar(Message message) {
+		int user = message.getFrom().getId();
+		long chatId = message.getChatId();
+		String substate = getDb().getSubState(user, chatId);
+		
+		String currentOptions = db.getOptionsSelected(user, chatId);
+		
+		switch (substate) {
+		case "CATEGORIA":
+
+			db.setOptionsSelected(user, chatId, "" + currentOptions + "#" + message.getLocation());
+			break;
+
+		default:
+			break;
+		}
+		
 		return "";
 	}
 	
@@ -197,5 +213,18 @@ public class GeneralHandler extends TelegramLongPollingBot {
 		getDb().setOptionsSelected(user, chatId, "");
 		
 		return return_message;
+	}
+	
+	private String getCommand(Message message) {
+		return message.getText().split(" ")[0];
+	}
+
+	private String getCommandArguments(Message message) {
+		String text = message.getText();
+		int index = text.indexOf(" ");
+		if (index == -1)
+			return "";
+		text = text.substring(index, text.length()).trim();
+		return text;
 	}
 }
