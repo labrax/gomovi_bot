@@ -48,47 +48,50 @@ public class GeneralHandler extends TelegramLongPollingBot {
 		String state = db.getState(user, chatId);
 		String substate = db.getSubState(user, chatId);
 		
+		if(state == null)
+			state = "";
+		if(substate == null)
+			substate = "";
+		
+		System.out.println("state: " + state + "; substate: " + substate);
+		
 		switch(substate) {
 			case "TEXTO":
-				db.setOptionsSelected(user, chatId, db.getOptionsSelected(user, chatId) + "#" + message.getText() );
+				db.setOptionsSelected(user, chatId, "" + db.getOptionsSelected(user, chatId) + "#" + message.getText());
 				break;
 			case "CATEGORIA":
-				db.setOptionsSelected(user, chatId, db.getOptionsSelected(user, chatId) + "#" + message.getText() );
+				db.setOptionsSelected(user, chatId, "" + db.getOptionsSelected(user, chatId) + "#" + message.getText());
 				break;
 			case "SUB-CATEGORIA":
-				db.setOptionsSelected(user, chatId, db.getOptionsSelected(user, chatId) + "#" + message.getText() );
+				db.setOptionsSelected(user, chatId, "" + db.getOptionsSelected(user, chatId) + "#" + message.getText());
 				break;
 			case "SUMARIO":
-				db.setOptionsSelected(user, chatId, db.getOptionsSelected(user, chatId) + "#" + message.getText() );
+				db.setOptionsSelected(user, chatId, "" + db.getOptionsSelected(user, chatId) + "#" + message.getText());
 				break;
 			case "DESCRICAO":
-				db.setOptionsSelected(user, chatId, db.getOptionsSelected(user, chatId) + "#" + message.getText() );
+				db.setOptionsSelected(user, chatId, "" + db.getOptionsSelected(user, chatId) + "#" + message.getText());
 				break;
 			case "LOCALIZACAO":
-				db.setOptionsSelected(user, chatId, db.getOptionsSelected(user, chatId) + "#" + message.getLocation() );
+				db.setOptionsSelected(user, chatId, "" + db.getOptionsSelected(user, chatId) + "#" + message.getLocation());
 				break;
 			default:
 				break;
 		}
 		
+		System.out.println("Aqui!");
+		
 		switch(state) {
 			case "CADASTRAR":
+				System.out.println("Indo para cadastrar!");
 				return processaCadastrar(message);
 			case "BUSCAR":
+				System.out.println("Indo para buscar!");
 				return processaBuscar(message);
-			case "LISTAR":
-				break;
-			case "DELETAR":
-				break;
-			case "HISTORICO":
-				break;
-			case "AVALIAR":
-				break;
-			default:
 			case "INICIAL":
+			default:
+				System.out.println("Indo para inicial!");
 				return processaInicial(message);
 		}
-		return "";
 	}
 	
 	String processaCadastrar(Message message) {
@@ -99,25 +102,37 @@ public class GeneralHandler extends TelegramLongPollingBot {
 		Integer user = message.getFrom().getId();
 		Long chatId = message.getChatId();
 		
+		String retorno = "";
+		
 		String substate = db.getInstance().getSubState(user, chatId);
+		String new_state = "BUSCAR";
 		String new_substate = "";
 		switch(substate) {
 			case "CATEGORIA":
 				new_substate = "SUB-CATEGORIA";
+				retorno = "Insira a sub-categoria do serviço da busca:";
 				break;
 			case "SUB-CATEGORIA":
 				new_substate = "LOCALIZACAO";
+				retorno = "Nos envie a sua localização!";
 				break;
 			case "LOCALIZACAO":
 				String data = db.getInstance().getOptionsSelected(user, chatId);
 				String[] splitted = data.split("#");
 				System.out.println(splitted);
-				return db.getInstance().getResultadosBusca(splitted[0], splitted[1], Float.parseFloat(splitted[2]), Float.parseFloat(splitted[3]));
+				retorno = db.getInstance().getResultadosBusca(splitted[0], splitted[1], Float.parseFloat(splitted[2]), Float.parseFloat(splitted[3]));
+				new_state = "INICIAL";
+				new_substate = "";
+				break;
 			default:
+				new_state = "INICIAL";
+				new_substate = "";
+				retorno = "Oops, alguma coisa deu errado! :(";
 				break;
 		}
-		
-		return "";
+		db.setState(user, chatId, new_state);
+		db.setSubState(user, chatId, new_substate);
+		return retorno;
 	}
 	
 	String processaInicial(Message message) {
@@ -148,23 +163,21 @@ public class GeneralHandler extends TelegramLongPollingBot {
 				return_message = "Insira a categoria do serviço que deseja buscar: ";
 				break;
 			case "/listar":
-				newState = "LISTAR";
 				return_message = "Estes são os serviços que você tem: " + db.getServicosUsuario(user);
 				break;
 			case "/deletar":
-				newState = "DELETAR";
 				if(splitted.length > 1 && db.getInstance().deletarServico(user, Integer.parseInt(splitted[1])))
 					return_message = "Serviço deletado!";
-				else
+				else if(splitted.length > 1)
 					return_message = "Serviço com id " + splitted[1] + " não deletado. Você inseriu algo errado?\n" + return_message;
+				else
+					return_message = "Por favor, insira o número do serviço (consulte em /listar no caso de dúvidas!\n" + return_message;
 				break;
 			case "/historico":
-				newState = "HISTORICO";
 				if(splitted.length > 1)
 					return_message = "Este é o seu histórico:\n" + db.getHistoricoUsuario(user);
 				break;
 			case "/avaliar":
-				newState = "AVALIAR";
 				if(splitted.length > 3 && db.getInstance().avaliar(Integer.parseInt(splitted[1]), Integer.parseInt(splitted[2]))) 
 					return_message = "Obrigado por avaliar!";
 				else
