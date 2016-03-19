@@ -12,6 +12,8 @@ import movile.hackathon.team_bot.utils.Colecoes;
 import movile.hackathon.team_bot.utils.MongoFacade;
 
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * created by Alvaro
@@ -208,7 +210,8 @@ public class DatabaseConn {
 
         try {
             DatabaseConn conn = new DatabaseConn();
-            conn.avaliar(4,3);
+            List<String> teste = conn.getResultadosBusca("Entretenimento","Cinema", (float)100.00,(float)100.0);
+            System.out.println(teste.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -222,8 +225,21 @@ public class DatabaseConn {
 	 * @param location
 	 * @return
 	 */
-	public String getResultadosBusca(String categoria, String sub_categoria, float latitude, float longitude) {
-		return null;
+	public List<String> getResultadosBusca(String categoria, String sub_categoria, float latitude, float longitude) {
+        List<String> servicos = new ArrayList<String>();
+        BasicDBObject queryServicos = new BasicDBObject();
+        queryServicos.append("tipoDocumento","SERVICO");
+        queryServicos.append("categoria", categoria);
+        queryServicos.append("subCategoria",sub_categoria);
+
+        DBCursor cursor = colecao.find(queryServicos);
+
+        while(cursor.hasNext()) {
+            BasicDBObject servico = (BasicDBObject)cursor.next();
+            servicos.add(servico.getString("servicoId"));
+        }
+
+        return servicos;
 	}
 	
 	/**
