@@ -58,9 +58,7 @@ public class GeneralHandler extends TelegramLongPollingBot {
 			if(message.getText().equals("/cancelar")) {
 				if(Config.DEBUG)
 					System.out.println("Cancelando ação do usuário...");
-				db.setState(user, chatId, "INICIAL");
-				db.setSubState(user, chatId, "");
-				db.setOptionsSelected(user, chatId, "");
+				finalizarAtendimento(user, chatId);
 				return "A função foi cancelada!";
 			}
 		}
@@ -149,7 +147,7 @@ public class GeneralHandler extends TelegramLongPollingBot {
 				break;
 			case "SUMARIO":
 				new_substate = "DESCRICAO";
-				retorno = "Você pode detalhar os seus serviços, se quiser";
+				retorno = "Detalhe seu serviço:";
 				break;
 			case "DESCRICAO":
 				new_substate = "LOCALIZACAO";
@@ -176,6 +174,7 @@ public class GeneralHandler extends TelegramLongPollingBot {
 				new_state = "INICIAL";
 				new_substate = "";
 				retorno = "Oops, alguma coisa deu errado! :(";
+				finalizarAtendimento(user, chatId);
 				break;
 		}
 		db.setState(user, chatId, new_state);
@@ -192,11 +191,15 @@ public class GeneralHandler extends TelegramLongPollingBot {
 		String substate = db.getSubState(user, chatId);
 		String new_state = "BUSCAR";
 		String new_substate = "";
+		
+		String data = db.getOptionsSelected(user, chatId);
+		String[] splitted = data.split("#");
+		
 		switch(substate) {
 			case "CATEGORIA":
 				new_substate = "SUB-CATEGORIA";
 				retorno = "Qual a sub-categoria do serviço que você esta buscando?\n\n";
-				retorno += listToString(db.getSubCategorias("Saúde"));
+				retorno += listToString(db.getSubCategorias(splitted[1]));
 				break;
 			case "SUB-CATEGORIA":
 				new_substate = "LOCALIZACAO";
@@ -204,9 +207,6 @@ public class GeneralHandler extends TelegramLongPollingBot {
 				break;
 			case "LOCALIZACAO":
 				try {
-					String data = db.getOptionsSelected(user, chatId);
-					String[] splitted = data.split("#");
-					
 					if(Config.DEBUG) {
 						for(int i = 0; i < splitted.length; i++) {
 							System.out.println("" + i + ": " + splitted[i]);
@@ -310,9 +310,15 @@ public class GeneralHandler extends TelegramLongPollingBot {
 		
 		db.setState(user, chatId, newState);
 		db.setSubState(user, chatId, newSubState);
-		db.setOptionsSelected(user, chatId, "");
+//		db.setOptionsSelected(user, chatId, "");
 		
 		return return_message;
+	}
+	
+	private void finalizarAtendimento(int user, long chatId) {
+		db.setOptionsSelected(user, chatId, "");
+		db.setState(user, chatId, "");
+		db.setSubState(user, chatId, "");
 	}
 	
 	private String getCommand(Message message) {
