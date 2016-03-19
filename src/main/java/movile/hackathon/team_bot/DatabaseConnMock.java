@@ -12,7 +12,7 @@ public class DatabaseConnMock {
 	HashMap<String, Object> subStateDb = new HashMap<>();
 	HashMap<String, Object> optionsSelectedDb = new HashMap<>();
 	HashMap<String, Object> resultadosBuscaDb = new HashMap<>();
-	HashMap<String, Object> usuariosDb = new HashMap<>();
+	HashMap<Integer, Object> usuariosDb = new HashMap<>();
 	
 	
 	private DatabaseConnMock() {}
@@ -64,13 +64,18 @@ public class DatabaseConnMock {
 	}
 	
 	public void addServico(int userId, String categoria, String sumario, String descricao, String subCategoria){
+		if(!usuariosDb.containsKey(userId))
+			return;
 		Usuario usuario = (Usuario) usuariosDb.get(userId);
 		usuario.getServicos().add(new Servico(categoria, sumario, descricao, subCategoria));
+		usuariosDb.put(userId,usuario);
 	}
 	
 	public void addUsuario(int userId, String userName, float latitude, float longitude){
-		
-		
+		if(!usuariosDb.containsKey(userId))
+			return;
+		Usuario usuario = new Usuario(userId, userName, latitude, longitude);
+		usuariosDb.put(userId, usuario);
 	}
 	
 	/**
@@ -82,6 +87,14 @@ public class DatabaseConnMock {
 	 */
 	public String getResultadosBusca(String categoria, String sub_categoria, float latitude, float longitude) {
 		return null;
+	}
+	
+	public String getResultadosBuscaLocalizacaoTextual(String sub_categoria, String localizacao) {
+		return "";
+	}
+	
+	public String getResultadosBuscaTexto(String texto) {
+		return "";
 	}
 	
 	/**

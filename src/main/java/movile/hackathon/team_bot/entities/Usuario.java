@@ -1,5 +1,6 @@
 package movile.hackathon.team_bot.entities;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Usuario {
@@ -8,13 +9,13 @@ public class Usuario {
 	 private float latitude, longitude;
 	 private List<Servico> servicos;
 	 
-	 public Usuario(int userId, String userName, float latitude, float longitude, List<Servico> servicos) {
+	 public Usuario(int userId, String userName, float latitude, float longitude) {
 		super();
 		this.userId = userId;
 		this.userName = userName;
 		this.latitude = latitude;
 		this.longitude = longitude;
-		this.servicos = servicos;
+		this.servicos = new ArrayList<>();
 	}
 	
 	 
