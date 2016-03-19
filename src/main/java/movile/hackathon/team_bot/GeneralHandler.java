@@ -9,8 +9,8 @@ import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 
 public class GeneralHandler extends TelegramLongPollingBot {
-	private static String TOKEN = "177468357:AAHnVizr1jRjhAQJnvEIbK94AS1yP_O9hvw";
-	private static String USERNAME = "testbot";
+	private static String TOKEN = Config.token;
+	private static String USERNAME = Config.username;
 	
 	private DatabaseConnMock db;
 	private DatabaseConnMock getDb() {
@@ -20,9 +20,9 @@ public class GeneralHandler extends TelegramLongPollingBot {
 	public void onUpdateReceived(Update update) {
 		db = getDb();
 		
-		System.out.println(update.getMessage().getFrom().getUserName() + ": " + update.getMessage().getText());
 		String retorno = interactMessage(update.getMessage());
-		System.out.println(retorno);
+		if(Config.DEBUG)
+			System.out.println(retorno);
 		
 		SendMessage sendMessage = new SendMessage();
 		//sendMessage.setText("huehuehue br? " + update.getMessage().getText());
@@ -47,9 +47,6 @@ public class GeneralHandler extends TelegramLongPollingBot {
 		Integer user = message.getFrom().getId();
 		Long chatId = message.getChatId();
 		
-		if(message.getText() == "/cancelar")
-			db.setState(user, chatId, "INICIAL");
-		
 		String state = db.getState(user, chatId);
 		String substate = db.getSubState(user, chatId);
 		
@@ -58,7 +55,10 @@ public class GeneralHandler extends TelegramLongPollingBot {
 		if(substate == null)
 			substate = "";
 		
-		System.out.println("state: " + state + "; substate: " + substate);
+		if(Config.DEBUG) {
+			System.out.println(message.getFrom().getUserName() + ": " + message.getText());
+			System.out.println("state: " + state + "; substate: " + substate);
+		}
 		
 		switch(substate) {
 			case "TEXTO":
@@ -77,24 +77,28 @@ public class GeneralHandler extends TelegramLongPollingBot {
 				db.setOptionsSelected(user, chatId, "" + db.getOptionsSelected(user, chatId) + "#" + message.getText());
 				break;
 			case "LOCALIZACAO":
-				db.setOptionsSelected(user, chatId, "" + db.getOptionsSelected(user, chatId) + "#" + message.getLocation());
+				if(message.getLocation() != null) {
+					db.setOptionsSelected(user, chatId, "" + db.getOptionsSelected(user, chatId) + "#" + message.getLocation().getLatitude() + "#" + message.getLocation().getLongitude());
+				}
+				db.setOptionsSelected(user, chatId, "" + db.getOptionsSelected(user, chatId) + "#0#" + message.getText());
 				break;
 			default:
 				break;
 		}
 		
-		System.out.println("Aqui!");
-		
 		switch(state) {
 			case "CADASTRAR":
-				System.out.println("Indo para cadastrar!");
+				if(Config.DEBUG)
+					System.out.println("Indo para cadastrar!");
 				return processaCadastrar(message);
 			case "BUSCAR":
-				System.out.println("Indo para buscar!");
+				if(Config.DEBUG)
+					System.out.println("Indo para buscar!");
 				return processaBuscar(message);
 			case "INICIAL":
 			default:
-				System.out.println("Indo para inicial!");
+				if(Config.DEBUG)
+					System.out.println("Indo para inicial!");
 				return processaInicial(message);
 		}
 	}
@@ -112,8 +116,7 @@ public class GeneralHandler extends TelegramLongPollingBot {
 		Long chatId = message.getChatId();
 		
 		String retorno = "";
-		
-		db = getDb();
+
 		String substate = db.getSubState(user, chatId);
 		String new_state = "BUSCAR";
 		String new_substate = "";
@@ -128,10 +131,19 @@ public class GeneralHandler extends TelegramLongPollingBot {
 				retorno = "Nos envie a sua localização!";
 				break;
 			case "LOCALIZACAO":
-				String data = db.getInstance().getOptionsSelected(user, chatId);
-				String[] splitted = data.split("#");
-				System.out.println(splitted);
-				retorno = db.getInstance().getResultadosBusca(splitted[0], splitted[1], Float.parseFloat(splitted[2]), Float.parseFloat(splitted[3]));
+				try {
+					String data = db.getOptionsSelected(user, chatId);
+					String[] splitted = data.split("#");
+					
+					if(splitted[2].equals("0"))
+						retorno = "" + db.getResultadosBuscaLocalizacaoTextual(splitted[1], splitted[3]);
+					else
+						retorno = "" + db.getResultadosBusca(splitted[0], splitted[1], Float.parseFloat(splitted[2]), Float.parseFloat(splitted[3]));
+				}
+				catch(Exception e) {
+					retorno = "A busca falhou! :(";
+					e.printStackTrace();
+				}
 				new_state = "INICIAL";
 				new_substate = "";
 				break;
@@ -155,6 +167,7 @@ public class GeneralHandler extends TelegramLongPollingBot {
 + "/listar listar os seus serviços oferecidos\n"
 + "/deletar [id] delete um serviço seu oferecido\n"
 + "/historico ver seu histórico de serviços selecionados\n"
++ "/detalhes [usuario] veja os detalhes de serviços oferecidos por um usuário\n"
 + "/avaliar [usuario] [nota] avalie um usuário por um serviço oferecido\n"
 + "/cancelar cancele um procedimento atual";
 		
@@ -179,7 +192,7 @@ public class GeneralHandler extends TelegramLongPollingBot {
 				return_message = "Estes são os serviços que você tem: " + getDb().getServicosUsuario(user);
 				break;
 			case "/deletar":
-				if(splitted.length > 1 && getDb().deletarServico(user, Integer.parseInt(splitted[1])))
+				if(splitted.length > 1 && db.deletarServico(user, Integer.parseInt(splitted[1])))
 					return_message = "Serviço deletado!";
 				else if(splitted.length > 1)
 					return_message = "Serviço com id " + splitted[1] + " não deletado. Você inseriu algo errado?\n" + return_message;
@@ -190,20 +203,34 @@ public class GeneralHandler extends TelegramLongPollingBot {
 				if(splitted.length > 1)
 					return_message = "Este é o seu histórico:\n" + getDb().getHistoricoUsuario(user);
 				break;
+			case "/detalhes":
+				String get_db = "";
+				if(splitted.length > 1)
+					get_db = db.getDetalhesUsuario(splitted[1]);
+				if(get_db != "")
+					return_message = "O usuário tem os seguintes serviços:\n" + get_db;
+				else
+					return_message = "O nome de usuário inserido é inválido! :(";
+				break;
 			case "/avaliar":
-				if(splitted.length > 3 && getDb().avaliar(Integer.parseInt(splitted[1]), Integer.parseInt(splitted[2]))) 
+				if(splitted.length > 3 && db.avaliar(Integer.parseInt(splitted[1]), Integer.parseInt(splitted[2]))) 
 					return_message = "Obrigado por avaliar!";
 				else
 					return_message = "Ocorreu algum problema ao avaliar :(";
+				break;
+			case "/cancelar":
+				db.setState(user, chatId, "INICIAL");
+				db.setSubState(user, chatId, "");
+				db.setOptionsSelected(user, chatId, "");
 				break;
 			default:
 				newSubState = "";
 				break;
 		}
 		
-		getDb().setState(user, chatId, newState);
-		getDb().setSubState(user, chatId, newSubState);
-		getDb().setOptionsSelected(user, chatId, "");
+		db.setState(user, chatId, newState);
+		db.setSubState(user, chatId, newSubState);
+		db.setOptionsSelected(user, chatId, "");
 		
 		return return_message;
 	}
@@ -225,3 +252,14 @@ public class GeneralHandler extends TelegramLongPollingBot {
 		return String.join(", ", list);
 	}
 }
+
+/**
+cadastrar - cadastrar um serviço
+buscar - buscar um serviço
+listar - listar os seus serviços oferecidos
+deletar - delete um serviço seu oferecido (insira o número do indice na listagem)
+historico - ver seu histórico de serviços selecionados
+detalhes - veja os serviços oferecidos por um usuário (insira o nome dele)
+avaliar - avalie um usuário por um serviço oferecido (insira como parâmetros o outro usuário e a nota)
+cancelar - cancele um procedimento atual
+ */

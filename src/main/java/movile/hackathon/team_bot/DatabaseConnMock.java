@@ -6,12 +6,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.*;
 
+import movile.hackathon.team_bot.entities.Servico;
+import movile.hackathon.team_bot.entities.Usuario;
+
 public class DatabaseConnMock {
 	private static DatabaseConnMock instance = null;
 	private static HashMap<String, List<String>> categorias;
 
 	HashMap<String, Object> stateDb = new HashMap<>();
 	HashMap<String, Object> subStateDb = new HashMap<>();
+	HashMap<String, Object> optionsSelectedDb = new HashMap<>();
+	HashMap<String, Object> resultadosBuscaDb = new HashMap<>();
+	HashMap<Integer, Object> usuariosDb = new HashMap<>();
 
 	private DatabaseConnMock() {
 		categorias = new HashMap<>();
@@ -66,7 +72,9 @@ public class DatabaseConnMock {
 	 * @return
 	 */
 	public String getOptionsSelected(Integer user, Long chatId) {
-		return null;
+		if(!optionsSelectedDb.containsKey(user+"_"+chatId))
+			return null;
+		return (String) optionsSelectedDb.get(user+"_"+chatId);
 	}
 
 	/**
@@ -77,7 +85,22 @@ public class DatabaseConnMock {
 	 * @param options_txt
 	 */
 	public void setOptionsSelected(Integer user, Long chatId, String options_txt) {
-
+		optionsSelectedDb.put(user +"_"+ chatId, options_txt);
+	}
+	
+	public void addServico(int userId, String categoria, String sumario, String descricao, String subCategoria){
+		if(!usuariosDb.containsKey(userId))
+			return;
+		Usuario usuario = (Usuario) usuariosDb.get(userId);
+		usuario.getServicos().add(new Servico(categoria, sumario, descricao, subCategoria));
+		usuariosDb.put(userId,usuario);
+	}
+	
+	public void addUsuario(int userId, String userName, float latitude, float longitude){
+		if(!usuariosDb.containsKey(userId))
+			return;
+		Usuario usuario = new Usuario(userId, userName, latitude, longitude);
+		usuariosDb.put(userId, usuario);
 	}
 
 	/**
@@ -91,7 +114,15 @@ public class DatabaseConnMock {
 	public String getResultadosBusca(String categoria, String sub_categoria, float latitude, float longitude) {
 		return null;
 	}
-
+	
+	public String getResultadosBuscaLocalizacaoTextual(String sub_categoria, String localizacao) {
+		return "";
+	}
+	
+	public String getResultadosBuscaTexto(String texto) {
+		return "";
+	}
+	
 	/**
 	 * Retorna os serviçoes listados pelo usuário
 	 * 
@@ -133,12 +164,21 @@ public class DatabaseConnMock {
 	public Boolean avaliar(Integer user, Integer avaliacao) {
 		return false;
 	}
-
+	
 	public List<String> getCategorias() {
 		return new ArrayList<>(categorias.keySet());
 	}
 
 	public List<String> getSubCategorias(String categoria) {
 		return categorias.get(categoria);
+	}
+	
+	/**
+	 * retorna as ofertas que um usuário tem pesquisando pelo nome dele!
+	 * @param user
+	 * @return
+	 */
+	public String getDetalhesUsuario(String nome) {
+		return "";
 	}
 }
