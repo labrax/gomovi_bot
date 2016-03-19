@@ -84,6 +84,14 @@ public class DatabaseConnMock {
 		return null;
 	}
 	
+	public String getResultadosBuscaLocalizacaoTextual(String sub_categoria, String localizacao) {
+		return "";
+	}
+	
+	public String getResultadosBuscaTexto(String texto) {
+		return "";
+	}
+	
 	/**
 	 * Retorna os serviçoes listados pelo usuário
 	 * @param user
