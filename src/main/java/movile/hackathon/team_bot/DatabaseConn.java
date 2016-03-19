@@ -294,12 +294,26 @@ public class DatabaseConn {
      * @return
      */
     public String getDetalhesUsuario(String nome) {
-        return "";
+
+        BasicDBObject usuario = this.getUsuarioNome(nome);
+
+        StringBuilder builder = new StringBuilder();
+        builder.append("Nome: "+usuario.getString("nome")+"\n");
+        builder.append("Servicos: "+this.getServicosUsuario(usuario.getInt("user"))+"\n");
+
+        return builder.toString();
     }
 
     private BasicDBObject createQueryUser(Integer user) {
         BasicDBObject query = new BasicDBObject();
         query.append("user", user);
+        query.append("tipoDocumento","USUARIO");
+        return query;
+    }
+
+    private BasicDBObject createQueryNome(String nome) {
+        BasicDBObject query = new BasicDBObject();
+        query.append("nome", nome);
         query.append("tipoDocumento","USUARIO");
         return query;
     }
@@ -317,6 +331,15 @@ public class DatabaseConn {
     private BasicDBObject getUsuario(Integer user) {
         BasicDBObject query = new BasicDBObject();
         query.append("user", user);
+        query.append("tipoDocumento", "USUARIO");
+
+        BasicDBObject usuario = (BasicDBObject)colecao.findOne(query);
+        return usuario;
+    }
+
+    private BasicDBObject getUsuarioNome(String nome) {
+        BasicDBObject query = new BasicDBObject();
+        query.append("nome", nome);
         query.append("tipoDocumento", "USUARIO");
 
         BasicDBObject usuario = (BasicDBObject)colecao.findOne(query);
