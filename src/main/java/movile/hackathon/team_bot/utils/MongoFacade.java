@@ -34,7 +34,7 @@ public class MongoFacade {
         String pNomeColecao = coll.toString().toLowerCase();
 
         if (mongoDB == null) {
-            ResourceBundle rb = ResourceBundle.getBundle("config-pdg-commons");
+            ResourceBundle rb = ResourceBundle.getBundle("config");
 
             int port = 27017;
             String portStr = rb.getString("mongodb.port");
@@ -72,7 +72,7 @@ public class MongoFacade {
         String pNomeColecao = coll.toString().toLowerCase();
 
         if (mongoDB == null) {
-            ResourceBundle rb = ResourceBundle.getBundle("config-pdg-commons");
+            ResourceBundle rb = ResourceBundle.getBundle("config");
 
             Mongo mongo = new Mongo(rb.getString("mongodb.ip"));
 
