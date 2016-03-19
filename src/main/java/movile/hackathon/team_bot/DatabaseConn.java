@@ -92,7 +92,7 @@ public class DatabaseConn {
             BasicDBObject chatState;
             for(Object chatStateObj : chatStates) {
                 chatState = (BasicDBObject) chatStateObj;
-                if(chatState.getLong("chatId") == chatId) {
+                    if(chatState.getLong("chatId") == chatId) {
                     return chatState.getString("substate");
                 }
             }
@@ -287,12 +287,6 @@ public class DatabaseConn {
         return newChatState;
     }
 
-    private BasicDBList getChatStates(Integer user, Long chatId) {
-        BasicDBObject usuario = this.getUsuario(user);
-        if(usuario != null) return (BasicDBList)usuario.get("chatStates");
-        return null;
-    }
-
     private BasicDBObject getUsuario(Integer user) {
         BasicDBObject query = new BasicDBObject();
         query.append("user", user);
@@ -310,6 +304,12 @@ public class DatabaseConn {
 
         BasicDBObject servicoObj = (BasicDBObject)colecao.findOne(query);
         return servicoObj;
+    }
+
+    private BasicDBList getChatStates(Integer user, Long chatId) {
+        BasicDBObject usuario = this.getUsuario(user);
+        if(usuario != null) return (BasicDBList)usuario.get("chatStates");
+        return null;
     }
 
     private boolean getChatState(Integer user, Long chatId) {
