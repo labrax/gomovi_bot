@@ -1,14 +1,14 @@
 package movile.hackathon.team_bot;
 
-import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBCollection;
-import com.mongodb.WriteResult;
+import com.mongodb.*;
 import movile.hackathon.team_bot.utils.Colecoes;
 import movile.hackathon.team_bot.utils.MongoFacade;
 
 import java.net.UnknownHostException;
 
+/**
+ * created by Alvaro
+ */
 
 public class DatabaseConn {
 	private static DatabaseConn instance = null;
@@ -192,7 +192,7 @@ public class DatabaseConn {
 
         try {
             DatabaseConn conn = new DatabaseConn();
-            conn.avaliar(1,5);
+            conn.avaliar(1, 5);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -216,7 +216,24 @@ public class DatabaseConn {
 	 * @return
 	 */
 	public String getServicosUsuario(Integer user) {
-		return null;
+
+        BasicDBObject queryServicos = new BasicDBObject();
+        queryServicos.append("user",user);
+        queryServicos.append("tipoDocumento","SERVICO");
+
+        DBCursor cursor = colecao.find(queryServicos);
+
+        if(!cursor.hasNext()) return "Usuário não tem serviços cadastrados.";
+
+        int i=1;
+        StringBuilder builder = new StringBuilder();
+        while(cursor.hasNext()) {
+            BasicDBObject servico = (BasicDBObject)cursor.next();
+            builder.append(i + ": "+servico.getString("sumario") + "\n");
+            i++;
+        }
+
+        return builder.toString();
 	}
 	
 	/**
