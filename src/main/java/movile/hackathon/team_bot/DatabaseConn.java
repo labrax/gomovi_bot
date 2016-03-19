@@ -8,6 +8,7 @@ import movile.hackathon.team_bot.utils.MongoFacade;
 
 import java.net.UnknownHostException;
 
+
 public class DatabaseConn {
 	private static DatabaseConn instance = null;
     private static DBCollection colecao = null;
@@ -95,6 +96,12 @@ public class DatabaseConn {
         colecao.update(query,update);
     }
 	
+    /**
+     * Pegar o temporário para os dados inseridos
+     * @param user
+     * @param chatId
+     * @return
+     */
 	public String getOptionsSelected(Integer user, Long chatId)  {
 
         BasicDBObject queryUsuario = new BasicDBObject().append("user", user);
@@ -118,6 +125,12 @@ public class DatabaseConn {
 
 	}
 	
+	/**
+	 * Retornar o temporário para os dados inseridos
+	 * @param user
+	 * @param chatId
+	 * @param options_txt
+	 */
 	public void setOptionsSelected(Integer user, Long chatId, String options_txt) {
         BasicDBObject query = new BasicDBObject();
         query.append("user", user);
@@ -138,4 +151,62 @@ public class DatabaseConn {
         }
 
     }
+	
+	/**
+	 * Retorna a busca no bd da procura pelos termos...
+	 * @param categoria
+	 * @param sub_categoria
+	 * @param location
+	 * @return
+	 */
+	public String getResultadosBusca(String categoria, String sub_categoria, float latitude, float longitude) {
+		return null;
+	}
+	
+	/**
+	 * Retorna os serviçoes listados pelo usuário
+	 * @param user
+	 * @return
+	 */
+	public String getServicosUsuario(Integer user) {
+		return null;
+	}
+	
+	/**
+	 * deleta um serviço oferecido por um usuário (mostrado do indice em cima)
+	 * @param user
+	 * @param servico
+	 * @return TRUE IS SUCCESS; FALSE OTHERWISE
+	 */
+	public Boolean deletarServico(Integer user, Integer servico) {
+
+        BasicDBObject query = new BasicDBObject();
+        query.append("tipoDocumento","SERVICO");
+        query.append("user", user);
+        query.append("servico", servico);
+
+
+
+
+
+	}
+	
+	/**
+	 * retorna o histórico de compras do usuário
+	 * @param user
+	 * @return
+	 */
+	public String getHistoricoUsuario(Integer user) {
+		return null;
+	}
+	
+	/**
+	 * avalia um usuário
+	 * @param user
+	 * @param avaliacao
+	 * @return TRUE IF SUCCESS; FALSE OTHERWISE
+	 */
+	public Boolean avaliar(Integer user, Integer avaliacao) {
+		return false;
+	}
 }
