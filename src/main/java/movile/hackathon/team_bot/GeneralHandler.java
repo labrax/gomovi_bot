@@ -75,7 +75,10 @@ public class GeneralHandler extends TelegramLongPollingBot {
 				db.setOptionsSelected(user, chatId, "" + db.getOptionsSelected(user, chatId) + "#" + message.getText());
 				break;
 			case "LOCALIZACAO":
-				db.setOptionsSelected(user, chatId, "" + db.getOptionsSelected(user, chatId) + "#" + message.getLocation());
+				if(message.getLocation() != null) {
+					db.setOptionsSelected(user, chatId, "" + db.getOptionsSelected(user, chatId) + "#" + message.getLocation().getLatitude() + "#" + message.getLocation().getLongitude());
+				}
+				db.setOptionsSelected(user, chatId, "" + db.getOptionsSelected(user, chatId) + "#0#" + message.getText());
 				break;
 			default:
 				break;
