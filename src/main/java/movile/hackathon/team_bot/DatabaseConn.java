@@ -185,10 +185,14 @@ public class DatabaseConn {
         query.append("user", user);
         query.append("servico", servico);
 
+<<<<<<< HEAD
 
 
     return false;
 
+=======
+        return false;
+>>>>>>> b52310c2ce68c521d9e2a2640bd193ef45db13fd
 	}
 	
 	/**
@@ -217,5 +221,14 @@ public class DatabaseConn {
         }catch (Exception e){
             return false;
         }
+	}
+	
+	/**
+	 * retorna as ofertas que um usuário tem pesquisando pelo nome dele!
+	 * @param user
+	 * @return
+	 */
+	public String getDetalhesUsuario(String nome) {
+		return "";
 	}
 }
