@@ -26,11 +26,11 @@ import java.util.List;
 public class DatabaseConn {
 	private static DatabaseConn instance = null;
     private static DBCollection colecao = null;
-	
+
 	private DatabaseConn() throws UnknownHostException {
 		colecao = MongoFacade.getColecao(Colecoes.DADOS_USUARIOS);
 	}
-	
+
 	public static DatabaseConn getInstance() {
 		if(instance == null)
             try {
@@ -41,13 +41,14 @@ public class DatabaseConn {
         return instance;
 	}
 
-	public void addServico(int userId, String categoria, String sumario, String descricao, String subCategoria){
+	public void addServico(int userId, String userName, String categoria, String sumario, String descricao, String subCategoria){
 
         String md5Servico = DigestUtils.md5Hex(userId + categoria + sumario + descricao + subCategoria);
 
         if(this.getServico(md5Servico) == null) {
             BasicDBObject newServico = new BasicDBObject();
             newServico.append("userId", userId);
+            newServico.append("userName", userName);
             newServico.append("categoria", categoria);
             newServico.append("subCategoria", subCategoria);
             newServico.append("sumario", sumario);
@@ -58,7 +59,7 @@ public class DatabaseConn {
             colecao.insert(newServico);
         }
 	}
-	
+
 	public void addUsuario(int userId, String userName, float latitude, float longitude){
         BasicDBObject newUsuario = new BasicDBObject();
         newUsuario.append("userId", userId);
@@ -71,7 +72,7 @@ public class DatabaseConn {
 
         colecao.insert(newUsuario);
 	}
-	
+
 	public String getState(Integer user, Long chatId) {
 
         BasicDBObject queryUsuario = new BasicDBObject().append("userId", user);
@@ -89,11 +90,11 @@ public class DatabaseConn {
             //throw new Exception("Usuario "+user+", ChatId nao encontrado: "+chatId);
 
             System.out.println("Usuario "+user+", ChatId nao encontrado: "+chatId);
-            return null;
+            return "";
         } else {
             //throw new Exception("Usuario nao encontrado: "+user);
             System.out.println("Usuario nao encontrado: "+user);
-            return null;
+            return "";
         }
 	}
 
@@ -121,7 +122,7 @@ public class DatabaseConn {
 	}
 
 
-	
+
 	public String getSubState(Integer user, Long chatId)  {
 
         BasicDBObject queryUsuario = new BasicDBObject().append("userId", user);
@@ -144,7 +145,7 @@ public class DatabaseConn {
         }
 
 	}
-	
+
 	public void setSubState(Integer user, Long chatId, String state) {
 
         if(this.getChatState(user, chatId)) {
@@ -169,7 +170,7 @@ public class DatabaseConn {
             colecao.update(query, update);
         }
     }
-	
+
     /**
      * Pegar o temporário para os dados inseridos
      * @param user
@@ -198,7 +199,7 @@ public class DatabaseConn {
         }
 
 	}
-	
+
 	/**
 	 * Retornar o temporário para os dados inseridos
 	 * @param user
@@ -232,14 +233,14 @@ public class DatabaseConn {
 
         try {
             DatabaseConn conn = new DatabaseConn();
-            List<String> teste = conn.getResultadosBusca("Entretenimento","Cinema", (float)100.00,(float)100.0);
-            System.out.println(teste.toString());
+            //List<String> teste = conn.getResultadosBusca("Entretenimento","Cinema", (float)100.00,(float)100.0);
+            //System.out.println(teste.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
 
     }
-	
+
 	/**
 	 * Retorna a busca no bd da procura pelos termos...
 	 * @param categoria
@@ -247,8 +248,8 @@ public class DatabaseConn {
 	 * @param location
 	 * @return
 	 */
-	public List<String> getResultadosBusca(String categoria, String sub_categoria, float latitude, float longitude) {
-        List<String> servicos = new ArrayList<String>();
+	public String getResultadosBusca(String categoria, String sub_categoria, float latitude, float longitude) {
+        //List<String> servicos = new ArrayList<String>();
         BasicDBObject queryServicos = new BasicDBObject();
         queryServicos.append("tipoDocumento","SERVICO");
         queryServicos.append("categoria", categoria);
@@ -256,22 +257,29 @@ public class DatabaseConn {
 
         DBCursor cursor = colecao.find(queryServicos);
 
+        StringBuilder builder = new StringBuilder();
+
+        int i=1;
+        String servicos = "";
         while(cursor.hasNext()) {
             BasicDBObject servico = (BasicDBObject)cursor.next();
-            servicos.add(servico.getString("servicoId"));
+            //servicos.add(servico.getString("servicoId"));
+
+            servicos += (i+ ") "+servico.getString("userName") + ":  "+servico.getString("sumario"));
+            i++;
         }
 
         return servicos;
 	}
-	
+
 	public String getResultadosBuscaLocalizacaoTextual(String sub_categoria, String localizacao) {
 		return "";
 	}
-	
+
 	public String getResultadosBuscaTexto(String texto) {
 		return "";
 	}
-	
+
 	/**
 	 * Retorna os serviçoes listados pelo usuário
 	 * @param user
@@ -293,7 +301,7 @@ public class DatabaseConn {
 
         return builder.toString();
 	}
-	
+
 	/**
 	 * deleta um serviço oferecido por um usuário (mostrado do indice em cima)
 	 * @param user
@@ -346,7 +354,7 @@ public class DatabaseConn {
 
         return servicoObj;
     }
-	
+
 	/**
 	 * retorna o histórico de compras do usuário
 	 * @param user
@@ -355,7 +363,7 @@ public class DatabaseConn {
 	public String getHistoricoUsuario(Integer user) {
 		return null;
 	}
-	
+
 	/**
 	 * avalia um usuário
 	 * @param user
@@ -374,11 +382,11 @@ public class DatabaseConn {
             return false;
         }
 	}
-	
+
 	public List<String> getCategorias() {
 		return new ArrayList<>();
 	}
-	
+
 	public List<String> getSubCategorias(String categoria) {
 		return new ArrayList<>();
 	}
@@ -423,7 +431,7 @@ public class DatabaseConn {
         return newChatState;
     }
 
-    private BasicDBObject getUsuario(Integer user) {
+    public BasicDBObject getUsuario(Integer user) {
         BasicDBObject query = new BasicDBObject();
         query.append("userId", user);
         query.append("tipoDocumento", "USUARIO");

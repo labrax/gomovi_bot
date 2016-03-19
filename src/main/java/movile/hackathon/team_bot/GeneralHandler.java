@@ -12,9 +12,9 @@ public class GeneralHandler extends TelegramLongPollingBot {
 	private static String TOKEN = Config.token;
 	private static String USERNAME = Config.username;
 	
-	private DatabaseConnMock db;
-	private DatabaseConnMock getDb() {
-		return DatabaseConnMock.getInstance();
+	private DatabaseConn db;
+	private DatabaseConn getDb() {
+		return DatabaseConn.getInstance();
 	}
 	
 	public void onUpdateReceived(Update update) {
@@ -22,7 +22,7 @@ public class GeneralHandler extends TelegramLongPollingBot {
 		
 		String retorno = interactMessage(update.getMessage());
 		if(Config.DEBUG)
-			System.out.println(retorno);
+			System.out.println("O retorno é: \"" + retorno + "\"");
 		
 		SendMessage sendMessage = new SendMessage();
 		//sendMessage.setText("huehuehue br? " + update.getMessage().getText());
@@ -46,7 +46,11 @@ public class GeneralHandler extends TelegramLongPollingBot {
 	public String interactMessage(Message message) {
 		Integer user = message.getFrom().getId();
 		Long chatId = message.getChatId();
-		
+
+        if(db.getUsuario(user) == null) {
+            db.addUsuario(user, message.getFrom().getUserName(), 0.0f, 0.0f);
+        }
+
 		String state = db.getState(user, chatId);
 		String substate = db.getSubState(user, chatId);
 		
@@ -161,7 +165,7 @@ public class GeneralHandler extends TelegramLongPollingBot {
 				catch(Exception e) {
 					db.addUsuario(user, message.getFrom().getUserName(), 0, 0);
 				}
-				db.addServico(user, splitted[1], splitted[3], splitted[4], splitted[2]);
+				db.addServico(user, message.getFrom().getUserName(), splitted[1], splitted[3], splitted[4], splitted[2]);
 				retorno = "Seu serviço foi adicionado!";
 				new_state = "INICIAL";
 				new_substate = "";
@@ -210,7 +214,7 @@ public class GeneralHandler extends TelegramLongPollingBot {
 					}
 					
 					if(splitted[3].equals("0"))
-						retorno = "" + db.getResultadosBuscaLocalizacaoTextual(splitted[2], splitted[4]);
+						retorno = "" + db.getResultadosBusca(splitted[1], splitted[2], Float.parseFloat(splitted[3]), 0.0f);//db.getResultadosBuscaLocalizacaoTextual(splitted[2], splitted[4]);
 					else
 						retorno = "" + db.getResultadosBusca(splitted[1], splitted[2], Float.parseFloat(splitted[3]), Float.parseFloat(splitted[4]));
 				}
