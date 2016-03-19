@@ -1,4 +1,4 @@
-package movile.hackathon.team_bot.repository;
+package movile.hackathon.team_bot.entities;
 
 import java.util.ArrayList;
 import java.util.List;

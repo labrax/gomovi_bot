@@ -1,5 +1,7 @@
 package movile.hackathon.team_bot;
 
+import java.util.List;
+
 import org.telegram.telegrambots.TelegramApiException;
 import org.telegram.telegrambots.api.methods.SendMessage;
 import org.telegram.telegrambots.api.objects.Message;
@@ -48,6 +50,20 @@ public class GeneralHandler extends TelegramLongPollingBot {
 		String state = db.getState(user, chatId);
 		String substate = db.getSubState(user, chatId);
 		
+		try {
+			if(message.getText().equals("/cancelar")) {
+				if(Config.DEBUG)
+					System.out.println("Cancelando ação do usuário...");
+				db.setState(user, chatId, "INICIAL");
+				db.setSubState(user, chatId, "");
+				db.setOptionsSelected(user, chatId, "");
+				return "A função foi cancelada!";
+			}
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		
 		if(state == null)
 			state = "";
 		if(substate == null)
@@ -75,6 +91,9 @@ public class GeneralHandler extends TelegramLongPollingBot {
 				db.setOptionsSelected(user, chatId, "" + db.getOptionsSelected(user, chatId) + "#" + message.getText());
 				break;
 			case "LOCALIZACAO":
+				if(Config.DEBUG)
+					if(message.getLocation() != null)
+						System.out.println(message.getLocation().getLatitude() + ", " + message.getLocation().getLongitude());
 				if(message.getLocation() != null) {
 					db.setOptionsSelected(user, chatId, "" + db.getOptionsSelected(user, chatId) + "#" + message.getLocation().getLatitude() + "#" + message.getLocation().getLongitude());
 				}
@@ -102,23 +121,60 @@ public class GeneralHandler extends TelegramLongPollingBot {
 	}
 	
 	String processaCadastrar(Message message) {
-		int user = message.getFrom().getId();
-		long chatId = message.getChatId();
-		String substate = getDb().getSubState(user, chatId);
+		Integer user = message.getFrom().getId();
+		Long chatId = message.getChatId();
 		
-		String currentOptions = db.getOptionsSelected(user, chatId);
-		
-		switch (substate) {
-		case "CATEGORIA":
+		String retorno = "";
 
-			db.setOptionsSelected(user, chatId, "" + currentOptions + "#" + message.getLocation());
-			break;
-
-		default:
-			break;
+		String substate = db.getSubState(user, chatId);
+		String new_state = "CADASTRAR";
+		String new_substate = "";
+		switch(substate) {
+			case "CATEGORIA":
+				new_substate = "SUB-CATEGORIA";
+				retorno = "Insira a sub-categoria do seu serviço:";
+				break;
+			case "SUB-CATEGORIA":
+				new_substate = "SUMARIO";
+				retorno = "Insira o sumário do seu serviço:";
+				break;
+			case "SUMARIO":
+				new_substate = "DESCRICAO";
+				retorno = "Insira a descrição do seu serviço:";
+				break;
+			case "DESCRICAO":
+				new_substate = "LOCALIZACAO";
+				retorno = "Insira a sua localização!";
+				break;
+			case "LOCALIZACAO":
+				String data = db.getOptionsSelected(user, chatId);
+				String[] splitted = data.split("#");
+				
+				if(Config.DEBUG) {
+					for(int i = 0; i < splitted.length; i++) {
+						System.out.println("" + i + ": " + splitted[i]);
+					}
+				}
+				try {
+					db.addUsuario(user, message.getFrom().getUserName(), Float.parseFloat(splitted[5]), Float.parseFloat(splitted[6]));
+				}
+				catch(Exception e) {
+					db.addUsuario(user, message.getFrom().getUserName(), 0, 0);
+				}
+				db.addServico(user, splitted[1], splitted[3], splitted[4], splitted[2]);
+				retorno = "Seu serviço foi adicionado!";
+				new_state = "INICIAL";
+				new_substate = "";
+				break;
+			default:
+				new_state = "INICIAL";
+				new_substate = "";
+				retorno = "Oops, alguma coisa deu errado! :(";
+				break;
 		}
-		
-		return "";
+		db.setState(user, chatId, new_state);
+		db.setSubState(user, chatId, new_substate);
+		return retorno;
 	}
 	
 	String processaBuscar(Message message) {
@@ -133,7 +189,8 @@ public class GeneralHandler extends TelegramLongPollingBot {
 		switch(substate) {
 			case "CATEGORIA":
 				new_substate = "SUB-CATEGORIA";
-				retorno = "Insira a sub-categoria do serviço da busca:";
+				retorno = "Qual a sub-categoria do serviço que você esta buscando?";
+				retorno += listToString(db.getSubCategorias("Saúde"));
 				break;
 			case "SUB-CATEGORIA":
 				new_substate = "LOCALIZACAO";
@@ -144,7 +201,16 @@ public class GeneralHandler extends TelegramLongPollingBot {
 					String data = db.getOptionsSelected(user, chatId);
 					String[] splitted = data.split("#");
 					
-					retorno = "" + db.getResultadosBusca(splitted[0], splitted[1], Float.parseFloat(splitted[2]), Float.parseFloat(splitted[3]));
+					if(Config.DEBUG) {
+						for(int i = 0; i < splitted.length; i++) {
+							System.out.println("" + i + ": " + splitted[i]);
+						}
+					}
+					
+					if(splitted[3].equals("0"))
+						retorno = "" + db.getResultadosBuscaLocalizacaoTextual(splitted[2], splitted[4]);
+					else
+						retorno = "" + db.getResultadosBusca(splitted[1], splitted[2], Float.parseFloat(splitted[3]), Float.parseFloat(splitted[4]));
 				}
 				catch(Exception e) {
 					retorno = "A busca falhou! :(";
@@ -185,12 +251,14 @@ public class GeneralHandler extends TelegramLongPollingBot {
 			case "/cadastrar":
 				newState = "CADASTRAR";
 				newSubState = "CATEGORIA";
-				return_message = "Insira a categoria do serviço que deseja cadastrar: ";
+				return_message = "Qual categoria deseja cadastrar?";
+				return_message += listToString(db.getCategorias());
 				break;
 			case "/buscar":
 				newState = "BUSCAR";
 				newSubState = "CATEGORIA";
 				return_message = "Insira a categoria do serviço que deseja buscar: ";
+				return_message += listToString(db.getCategorias());
 				break;
 			case "/listar":
 				return_message = "Estes são os serviços que você tem: " + getDb().getServicosUsuario(user);
@@ -250,6 +318,10 @@ public class GeneralHandler extends TelegramLongPollingBot {
 			return "";
 		text = text.substring(index, text.length()).trim();
 		return text;
+	}
+	
+	private String listToString(List<String> list) {
+		return String.join(", ", list);
 	}
 }
 

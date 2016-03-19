@@ -1,4 +1,4 @@
-package movile.hackathon.team_bot.repository;
+package movile.hackathon.team_bot.repositories;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
