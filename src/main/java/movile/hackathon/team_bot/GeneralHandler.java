@@ -4,6 +4,7 @@ import org.telegram.telegrambots.TelegramApiException;
 import org.telegram.telegrambots.api.methods.SendMessage;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.database.DatabaseManager;
 
 public class GeneralHandler extends TelegramLongPollingBot {
 	private static String TOKEN = "198070718:AAG8BwYcnFF6_6MabfGpGXcHNo80IwVhvJs";
